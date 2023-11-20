@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <!-- interface-local-resource-path /home/denis/projects/defigo/services/ui/src/images -->
+  <!-- interface-css-provider-path window.css -->
+  <object class="GtkWindow" id="informationWindow">
+    <property name="name">informationWindow</property>
+    <property name="width-request">800</property>
+    <property name="height-request">1280</property>
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="resizable">False</property>
+    <property name="default-width">800</property>
+    <property name="default-height">1280</property>
+    <property name="decorated">False</property>
+    <child>
+      <object class="GtkBox" id="boxView">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="margin-top">20</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="boxLogo">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="margin-top">8</property>
+            <property name="margin-bottom">28</property>
+            <child>
+              <object class="GtkImage" id="imgLogo">
+                <property name="height-request">48</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="pixbuf">defigo-top-logo.png</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="boxImage">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="margin-top">184</property>
+            <child>
+              <object class="GtkOverlay" id="overImages">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkImage" id="imgBackground">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="pixel-size">512</property>
+                    <property name="icon-name">defigo-background-gray</property>
+                  </object>
+                  <packing>
+                    <property name="index">-1</property>
+                  </packing>
+                </child>
+                <child type="overlay">
+                  <object class="GtkImage" id="imgIcon">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="icon-name">defigo-card-red</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="boxMessage">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="margin-top">36</property>
+            <child>
+              <object class="GtkLabel" id="lblMessage">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="margin-start">45</property>
+                <property name="margin-end">45</property>
+                <property name="label" translatable="yes">Access card not accepted</property>
+                <property name="justify">center</property>
+                <property name="wrap">True</property>
+                <property name="wrap-mode">word-char</property>
+                <property name="ellipsize">end</property>
+                <property name="track-visited-links">False</property>
+                <property name="lines">2</property>
+                <style>
+                  <class name="information_error"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <style>
+      <class name="main_style"/>
+    </style>
+  </object>
+</interface>

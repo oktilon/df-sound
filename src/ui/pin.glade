@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <!-- interface-local-resource-path /home/denis/projects/defigo/services/ui/src/images -->
+  <!-- interface-css-provider-path window.css -->
+  <object class="GtkImage" id="imgCancel">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">defigo-cancel</property>
+    <style>
+      <class name="no_background"/>
+    </style>
+  </object>
+  <object class="GtkImage" id="imgCross">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">defigo-cross</property>
+    <style>
+      <class name="no_background"/>
+    </style>
+  </object>
+  <object class="GtkImage" id="imgNone">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">defigo-blank</property>
+    <style>
+      <class name="no_background"/>
+    </style>
+  </object>
+  <object class="GtkWindow" id="pinWindow">
+    <property name="name">pinWindow</property>
+    <property name="width-request">800</property>
+    <property name="height-request">1280</property>
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="resizable">False</property>
+    <property name="default-width">800</property>
+    <property name="default-height">1280</property>
+    <property name="decorated">False</property>
+    <child>
+      <object class="GtkBox" id="boxView">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="margin-top">20</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="boxLogo">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="margin-top">8</property>
+            <property name="margin-bottom">28</property>
+            <child type="center">
+              <object class="GtkImage" id="imgLogo">
+                <property name="width-request">600</property>
+                <property name="height-request">48</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">center</property>
+                <property name="pixbuf">defigo-top-logo.png</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btnNone">
+                <property name="width-request">48</property>
+                <property name="height-request">48</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="image">imgNone</property>
+                <property name="relief">none</property>
+                <style>
+                  <class name="top_button"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btnClose">
+                <property name="width-request">48</property>
+                <property name="height-request">48</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="image">imgCross</property>
+                <signal name="clicked" handler="btnCloseClicked" swapped="no"/>
+                <style>
+                  <class name="top_button"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="pack-type">end</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="boxText">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="margin-top">40</property>
+            <child>
+              <object class="GtkLabel" id="lblText">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="margin-start">45</property>
+                <property name="margin-end">45</property>
+                <property name="label" translatable="yes">To open the door
+please enter the pin code</property>
+                <property name="justify">center</property>
+                <property name="track-visited-links">False</property>
+                <property name="lines">2</property>
+                <style>
+                  <class name="pin_text"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="boxDigits">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="margin-top">112</property>
+            <property name="spacing">37</property>
+            <child>
+              <object class="GtkLabel" id="lblD0">
+                <property name="width-request">94</property>
+                <property name="height-request">132</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">8</property>
+                <style>
+                  <class name="pin_digit"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="lblD1">
+                <property name="width-request">94</property>
+                <property name="height-request">132</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">8</property>
+                <style>
+                  <class name="pin_digit"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="lblD2">
+                <property name="width-request">94</property>
+                <property name="height-request">132</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">8</property>
+                <style>
+                  <class name="pin_digit"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="lblD3">
+                <property name="width-request">94</property>
+                <property name="height-request">132</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">8</property>
+                <style>
+                  <class name="pin_digit"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="lblD4">
+                <property name="width-request">94</property>
+                <property name="height-request">132</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">8</property>
+                <style>
+                  <class name="pin_digit"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="lblD5">
+                <property name="width-request">94</property>
+                <property name="height-request">132</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">8</property>
+                <style>
+                  <class name="pin_digit"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">5</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="boxKeypad">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="margin-top">140</property>
+            <child>
+              <!-- n-columns=3 n-rows=4 -->
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="row-spacing">27</property>
+                <property name="column-spacing">27</property>
+                <property name="row-homogeneous">True</property>
+                <property name="column-homogeneous">True</property>
+                <child>
+                  <object class="GtkButton" id="btnD1">
+                    <property name="label" translatable="yes">1</property>
+                    <property name="name">key1</property>
+                    <property name="width-request">194</property>
+                    <property name="height-request">115</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnDigitClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnD2">
+                    <property name="label" translatable="yes">2</property>
+                    <property name="name">key2</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnDigitClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnD3">
+                    <property name="label" translatable="yes">3</property>
+                    <property name="name">key3</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnDigitClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">2</property>
+                    <property name="top-attach">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnD4">
+                    <property name="label" translatable="yes">4</property>
+                    <property name="name">key4</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnDigitClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnD5">
+                    <property name="label" translatable="yes">5</property>
+                    <property name="name">key5</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnDigitClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnD6">
+                    <property name="label" translatable="yes">6</property>
+                    <property name="name">key6</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnDigitClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">2</property>
+                    <property name="top-attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnD7">
+                    <property name="label" translatable="yes">7</property>
+                    <property name="name">key7</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnDigitClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnD8">
+                    <property name="label" translatable="yes">8</property>
+                    <property name="name">key8</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnDigitClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnD9">
+                    <property name="label" translatable="yes">9</property>
+                    <property name="name">key9</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnDigitClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">2</property>
+                    <property name="top-attach">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnCross">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="image">imgCancel</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnCrossClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key_cancel"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">0</property>
+                    <property name="top-attach">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnD0">
+                    <property name="label" translatable="yes">0</property>
+                    <property name="name">key0</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnDigitClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">1</property>
+                    <property name="top-attach">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnOk">
+                    <property name="label" translatable="yes">Ok</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnOkClicked" swapped="no"/>
+                    <style>
+                      <class name="pin_key_ok"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="left-attach">2</property>
+                    <property name="top-attach">3</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <style>
+      <class name="main_style"/>
+    </style>
+  </object>
+</interface>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <!-- interface-local-resource-path src/ui -->
+  <!-- interface-css-provider-path window.css -->
+  <object class="GtkWindow" id="connectingWindow">
+    <property name="name">connectingWindow</property>
+    <property name="width-request">800</property>
+    <property name="height-request">1280</property>
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="resizable">False</property>
+    <property name="default-width">800</property>
+    <property name="default-height">1280</property>
+    <property name="decorated">False</property>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkImage" id="imgLogo">
+            <property name="width-request">185</property>
+            <property name="height-request">185</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="events"/>
+            <property name="pixel-size">185</property>
+            <property name="icon-name">defigo-logo-blue</property>
+            <style>
+              <class name="connecting_logo"/>
+            </style>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="margin-top">48</property>
+            <property name="spacing">4</property>
+            <child>
+              <object class="GtkLabel" id="lblConnecting">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">Connecting</property>
+                <property name="justify">center</property>
+                <style>
+                  <class name="connecting_text"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkDrawingArea" id="areaDots">
+                <property name="width-request">26</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <signal name="draw" handler="areaDotsDraw" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <style>
+      <class name="main_style"/>
+    </style>
+  </object>
+</interface>

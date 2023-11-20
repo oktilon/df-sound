@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <!-- interface-local-resource-path /home/denis/projects/defigo/services/ui/src/images -->
+  <!-- interface-css-provider-path window.css -->
+  <object class="GtkImage" id="imgApartments">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">defigo-appartments</property>
+    <style>
+      <class name="no_background"/>
+    </style>
+  </object>
+  <object class="GtkImage" id="imgBusinesses">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">defigo-businesses</property>
+    <style>
+      <class name="no_background"/>
+    </style>
+  </object>
+  <object class="GtkImage" id="imgGear">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">defigo-gear</property>
+    <style>
+      <class name="no_background"/>
+    </style>
+  </object>
+  <object class="GtkImage" id="imgNone">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">defigo-blank</property>
+    <style>
+      <class name="no_background"/>
+    </style>
+  </object>
+  <object class="GtkWindow" id="menuWindow">
+    <property name="name">menuWindow</property>
+    <property name="width-request">800</property>
+    <property name="height-request">1280</property>
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="resizable">False</property>
+    <property name="default-width">800</property>
+    <property name="default-height">1280</property>
+    <property name="decorated">False</property>
+    <child>
+      <object class="GtkBox" id="boxView">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="boxLogo">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="margin-top">28</property>
+            <property name="margin-bottom">28</property>
+            <child type="center">
+              <object class="GtkImage" id="imgLogo">
+                <property name="width-request">600</property>
+                <property name="height-request">48</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">center</property>
+                <property name="pixbuf">defigo-top-logo.png</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btnNone">
+                <property name="width-request">48</property>
+                <property name="height-request">48</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="image">imgNone</property>
+                <property name="relief">none</property>
+                <style>
+                  <class name="top_button"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btnSettings">
+                <property name="width-request">48</property>
+                <property name="height-request">48</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="image">imgGear</property>
+                <signal name="clicked" handler="btnSettingsClicked" swapped="no"/>
+                <style>
+                  <class name="top_button"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="pack-type">end</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="boxName">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="margin-top">30</property>
+            <child>
+              <object class="GtkLabel" id="lblName">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="label" translatable="no">Doorbell name</property>
+                <property name="justify">center</property>
+                <property name="track-visited-links">False</property>
+                <property name="lines">2</property>
+                <style>
+                  <class name="menu_text"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="boxMenu">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="halign">center</property>
+            <property name="margin-top">196</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">40</property>
+            <child>
+              <object class="GtkButton" id="btnApartments">
+                <property name="label" translatable="yes">Apartments</property>
+                <property name="width-request">600</property>
+                <property name="height-request">226</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="image">imgApartments</property>
+                <property name="relief">none</property>
+                <property name="image-position">top</property>
+                <property name="always-show-image">True</property>
+                <signal name="clicked" handler="btnApartmentsClicked" swapped="no"/>
+                <style>
+                  <class name="menu_button"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="btnBusinesses">
+                <property name="label" translatable="yes">Businesses</property>
+                <property name="name">key2</property>
+                <property name="width-request">600</property>
+                <property name="height-request">226</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <property name="image">imgBusinesses</property>
+                <property name="relief">none</property>
+                <property name="image-position">top</property>
+                <property name="always-show-image">True</property>
+                <signal name="clicked" handler="btnBusinessesClicked" swapped="no"/>
+                <style>
+                  <class name="menu_button"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <style>
+      <class name="main_style"/>
+    </style>
+  </object>
+</interface>

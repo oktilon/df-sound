@@ -1,0 +1,2 @@
+option('log_level', type : 'combo', value : 'warn', choices: ['err', 'warn', 'info', 'notice', 'dbg'], description: 'Debug level on service start')
+option('user', type : 'string', value : 'defigo', description: 'User for service access policy and home folder')

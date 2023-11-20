@@ -1,0 +1,17 @@
+[Unit]
+Description=Defigo User Interface service
+
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=@executable@
+
+StandardOutput=append:/var/log/defigo/@prj_name@.log
+StandardError=append:/var/log/defigo/@prj_name@.log
+
+[Install]
+WantedBy=multi-user.target

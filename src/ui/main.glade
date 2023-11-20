@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 -->
+<interface>
+  <requires lib="gtk+" version="3.24"/>
+  <!-- interface-local-resource-path /home/denis/projects/defigo/services/ui/src/images -->
+  <!-- interface-css-provider-path window.css -->
+  <object class="GtkTextBuffer" id="bufferSearch">
+    <property name="text" translatable="yes">test message</property>
+  </object>
+  <object class="GtkImage" id="imgBack">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">defigo-back</property>
+    <style>
+      <class name="top_button"/>
+    </style>
+  </object>
+  <object class="GtkImage" id="imgClearSearch">
+    <property name="can-focus">False</property>
+    <property name="pixel-size">48</property>
+    <property name="icon-name">defigo-cross</property>
+    <style>
+      <class name="top_button"/>
+    </style>
+  </object>
+  <object class="GtkImage" id="imgGear">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="icon-name">defigo-gear</property>
+    <style>
+      <class name="top_button"/>
+    </style>
+  </object>
+  <object class="GtkWindow" id="mainWindow">
+    <property name="name">mainWindow</property>
+    <property name="width-request">800</property>
+    <property name="height-request">1280</property>
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkOverlay" id="mainOverlay">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <child>
+          <object class="GtkBox" id="mainBox">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="margin-top">20</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkBox" id="logoBox">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="margin-top">8</property>
+                <property name="margin-bottom">28</property>
+                <property name="spacing">10</property>
+                <child type="center">
+                  <object class="GtkImage" id="imgLogo">
+                    <property name="width-request">600</property>
+                    <property name="height-request">48</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="pixbuf">defigo-top-logo.png</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnSettings">
+                    <property name="width-request">48</property>
+                    <property name="height-request">48</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="image">imgGear</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnSettingsClicked" swapped="no"/>
+                    <style>
+                      <class name="top_button"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="pack-type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="btnBack">
+                    <property name="width-request">48</property>
+                    <property name="height-request">48</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <property name="halign">start</property>
+                    <property name="valign">center</property>
+                    <property name="image">imgBack</property>
+                    <property name="relief">none</property>
+                    <signal name="clicked" handler="btnBackClicked" swapped="no"/>
+                    <style>
+                      <class name="top_button"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkStack" id="stackSearch">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="margin-start">20</property>
+                <property name="margin-end">20</property>
+                <property name="transition-duration">300</property>
+                <property name="transition-type">crossfade</property>
+                <child>
+                  <object class="GtkEventBox" id="eventSearch">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="events">GDK_STRUCTURE_MASK | GDK_TOUCH_MASK | GDK_TOUCHPAD_GESTURE_MASK</property>
+                    <child>
+                      <object class="GtkBox" id="boxButton">
+                        <property name="height-request">96</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON1_MOTION_MASK | GDK_BUTTON2_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK | GDK_TOUCH_MASK | GDK_TOUCHPAD_GESTURE_MASK</property>
+                        <property name="valign">center</property>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="margin-left">28</property>
+                            <property name="margin-start">28</property>
+                            <property name="icon-name">defigo-search</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="margin-left">24</property>
+                            <property name="margin-start">24</property>
+                            <property name="label" translatable="yes">Search</property>
+                            <style>
+                              <class name="search_button"/>
+                            </style>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <style>
+                          <class name="search_frame"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="name">boxButton</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkBox" id="boxText">
+                    <property name="height-request">96</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkOverlay">
+                        <property name="height-request">48</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="valign">center</property>
+                        <property name="margin-start">28</property>
+                        <child>
+                          <object class="GtkLabel" id="lblSearch">
+                            <property name="height-request">48</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="halign">start</property>
+                            <property name="valign">center</property>
+                            <property name="label" translatable="yes">User Name 12</property>
+                            <style>
+                              <class name="search_class"/>
+                            </style>
+                          </object>
+                          <packing>
+                            <property name="index">-1</property>
+                          </packing>
+                        </child>
+                        <child type="overlay">
+                          <object class="GtkDrawingArea" id="areaCursor">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <signal name="draw" handler="areaCursorDraw" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="pass-through">True</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="btnClear">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <property name="valign">center</property>
+                        <property name="margin-end">28</property>
+                        <property name="image">imgClearSearch</property>
+                        <property name="relief">none</property>
+                        <signal name="clicked" handler="btnClearClicked" swapped="no"/>
+                        <style>
+                          <class name="top_button"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="pack-type">end</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <style>
+                      <class name="search_frame_active"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="name">boxText</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkDrawingArea" id="mainGrid">
+                <property name="width-request">800</property>
+                <property name="height-request">952</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="margin-top">28</property>
+                <signal name="draw" handler="mainGridDraw" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkBox" id="pagerBox">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="margin-bottom">32</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkDrawingArea" id="pagerArea">
+                    <property name="height-request">16</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <signal name="draw" handler="pagerAreaDraw" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <style>
+                  <class name="pager_box"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="pack-type">end</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="index">-1</property>
+          </packing>
+        </child>
+        <child type="overlay">
+          <object class="GtkBox" id="keypad">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="valign">end</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkImage" id="imgShadow">
+                <property name="height-request">10</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="resource">/com/getdefigo/ui/keys-border.png</property>
+                <style>
+                  <class name="keypad_shadow"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkBox" id="boxKeypad">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="margin-bottom">32</property>
+                <property name="orientation">vertical</property>
+                <property name="spacing">11</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="margin-top">33</property>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label" translatable="yes">q</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <style>
+                          <class name="keypad_key"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label" translatable="yes">w</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <style>
+                          <class name="keypad_key"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label" translatable="yes">e</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <style>
+                          <class name="keypad_key"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">center</property>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label" translatable="yes">a</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <style>
+                          <class name="keypad_key"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label" translatable="yes">s</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <style>
+                          <class name="keypad_key"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label" translatable="yes">d</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <style>
+                          <class name="keypad_key"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="halign">center</property>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label" translatable="yes">z</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <style>
+                          <class name="keypad_key"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label" translatable="yes">x</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <style>
+                          <class name="keypad_key"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label" translatable="yes">c</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <style>
+                          <class name="keypad_key"/>
+                        </style>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <style>
+                  <class name="keypad_class"/>
+                </style>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+        </child>
+        <child type="overlay">
+          <object class="GtkDrawingArea" id="areaOverlay">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <signal name="draw" handler="areaOverlayDraw" swapped="no"/>
+          </object>
+          <packing>
+            <property name="index">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <style>
+      <class name="main_style"/>
+    </style>
+  </object>
+</interface>

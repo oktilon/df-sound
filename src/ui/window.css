@@ -1,0 +1,352 @@
+.main_style {
+    background-color: #E6EAEC;
+}
+
+.logo_class {
+    border: none;
+}
+
+.top_button, .top_button:hover {
+    background: transparent none;
+    border: none;
+}
+
+.no_background {
+    background: transparent none;
+}
+
+.search_frame {
+    background-color: #FFFFFF;
+    border: none;
+    border-radius: 28px;
+}
+
+.search_frame_active {
+    background-color: #FFFFFF;
+    border: 2px solid #C4C6D0;
+    border-radius: 28px;
+}
+
+.search_class {
+    background-color: #FFFFFF;
+    border: none;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 28px;
+    color: #44474F;
+}
+
+.search_button {
+    background: transparent none;
+    border: none;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 24px;
+    color: #74777F;
+}
+
+.keypad_class {
+    background: #E6EAEC;
+}
+
+.keypad_shadow {
+    border-bottom: 2px solid #C4C6D0;
+}
+
+.keypad_key {
+    background: #FFFFFF;
+    border: 0.521px solid #74777F;
+    color: #586C9D;
+    border-radius: 4px;
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 28.366px;
+}
+
+.keypad_key label {
+    color: #586C9D;
+}
+
+.keypad_key_del {
+    background: #D8E2FF;
+    border: 0.521px solid #74777F;
+    border-radius: 4px;
+}
+
+/* .pager {
+    border: 1px solid #bf3344;
+} */
+
+/* .pager_box {
+    border: 1px dotted #1e90ff;
+} */
+
+.green_dots {
+    border: 1px dotted #007700;
+}
+
+.red_shadow {
+    box-shadow: 3px 3px #BA1A1A;
+}
+
+.unit_box, .unit_box:selected {
+    border: none;
+    border-radius: 24px;
+    background-color: #FFFFFF;
+}
+
+.unit_image {
+    background-color: #E9E7EC;
+    border-radius: 50%;
+}
+
+.unit_text {
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 22px;
+    color: #44474F;
+    /* line-height: 28px; */
+}
+
+.unit_desc {
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 18px;
+    color: #44474F;
+    /* letter-spacing: 0.15px; */
+}
+
+.connecting_text {
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 42px;
+    color: #1B1464;
+}
+
+.unit_name {
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 56px;
+    color: #00134D;
+}
+
+.call_confirm_window {
+    background: transparent none;
+    border: none;
+    border-radius: 32px;
+}
+
+.call_confirm_box {
+    background: #FFFFFF;
+    border: none;
+    border-radius: 32px;
+}
+
+.call_question {
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 24px;
+    color: #44474F;
+}
+
+.call_image {
+    background-color: #E9E7EC;
+    border-radius: 50%;
+}
+
+.call_username {
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 57px;
+    color: #1B1B1F;
+}
+
+.call_description {
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 32px;
+    color: #1B1B1F;
+}
+
+.call_button, .call_button:hover {
+    background: #005AC1;
+    border: none;
+    border-radius: 50%;
+}
+.call_button:active {
+    background-color: #80AAFF;
+}
+.call_button:disabled {
+    background-color: #C4C6D0;
+}
+
+.call_cancel_button, .call_cancel_button:hover {
+    background: #BA1A1A;
+    border: none;
+    border-radius: 50%;
+}
+.call_cancel_button:active {
+    background-color: #FF897D;
+}
+.call_cancel_button:disabled {
+    background-color: #C4C6D0;
+}
+
+.call_status {
+    font-family: Poppins;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 28px;
+    color: #005AC1;
+}
+
+.information_info {
+    color: #005AC1;
+    font-family: Poppins;
+    font-size: 57px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.information_error {
+    color: #DE3730;
+    font-family: Poppins;
+    font-size: 57px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.information_message {
+    color: #1B1B1F;
+    font-family: Poppins;
+    font-size: 45px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.information_success {
+    color: #00A92F;
+    font-family: Poppins;
+    font-size: 45px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.scan_message {
+    color: #1B1B1F;
+    font-family: Poppins;
+    font-size: 45px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.scan_image {
+    border-radius: 32px;
+    border: 4px solid #C4C6D0;
+}
+
+.scan_countdown {
+    color: #005AC1;
+    font-family: Poppins;
+    font-size: 45px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.pin_text {
+    color: #1B1B1F;
+    font-family: Poppins;
+    font-size: 45px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.pin_error {
+    color: #DE3730;
+    font-family: Poppins;
+    font-size: 45px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.pin_digit {
+    color: #005AC1;
+    font-family: Poppins;
+    font-size: 45px;
+    font-style: normal;
+    font-weight: 400;
+    border-bottom: 1px solid #74777F;
+}
+
+.pin_digit_error {
+    color: #DE3730;
+    font-family: Poppins;
+    font-size: 45px;
+    font-style: normal;
+    font-weight: 400;
+    border-bottom: 1px solid #74777F;
+}
+
+.pin_key {
+    background: #FAF9FD;
+    border-radius: 27px;
+    border: 1px solid #C4C6D0;
+    color: #001A41;
+    font-family: Poppins;
+    font-size: 40.596px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.pin_key_cancel {
+    background: #74777F;
+    border-radius: 27px;
+    border: 1px solid #74777F;
+}
+
+.pin_key_ok {
+    background: #005AC1;
+    border-radius: 27px;
+    border: 1px solid #005AC1;
+    color: #EDF0FC;
+    font-family: Poppins;
+    font-size: 40.596px;
+    font-style: normal;
+    font-weight: 400;
+}
+.pin_key_ok:active {
+    background-color: #80AAFF;
+    border-color: #80AAFF;
+}
+.pin_key_ok:disabled {
+    background-color: #C4C6D0;
+    border-color: #C4C6D0;
+}
+
+.menu_text {
+    color: #1B1B1F;
+    font-family: Poppins;
+    font-size: 45px;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.menu_button {
+    border-radius: 32px;
+    background: #FFF;
+    color: #1B1B1F;
+    font-family: Poppins;
+    font-size: 36px;
+    font-style: normal;
+    font-weight: 400;
+}
