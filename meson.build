@@ -64,10 +64,10 @@ inc = include_directories([
 
 # Sources
 src = [
-    'src/sound.c'
-    # 'src/app.c'
-    # 'src/dbus.c',
-    # 'src/common.c',
+    'src/app.c',
+    'src/dbus.c',
+    'src/sound.c',
+    'src/config.c'
 ]
 
 # Main header file config

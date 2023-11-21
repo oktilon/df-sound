@@ -4,10 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include <libintl.h>
 #include <systemd/sd-bus.h>
-
-#include "common.h"
 
 #define VERSION_MAJOR       @version_major@
 #define VERSION_MINOR       @version_minor@
@@ -23,7 +20,7 @@
 #define BUS_COMMON_FLAGS    0
 #endif
 
-#define BUFFER_SIZE     2048
+#define MAX_URL_SIZE        1024
 
 // Colors
 #define CSI                 "\033["
@@ -206,5 +203,11 @@ typedef enum AppStateEnum {
     , SND_Idle
     , SND_Playing
 } AppState;
+
+typedef struct SoundDataStruct {
+    unsigned long id;
+    char url[MAX_URL_SIZE];
+    unsigned char *data;
+} SoundData;
 
 #endif // App_H

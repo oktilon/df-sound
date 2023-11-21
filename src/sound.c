@@ -13,11 +13,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/queue.h>
 
 // Include the ALSA .H file that defines ALSA functions/data
 #include <alsa/asoundlib.h>
 
 #include "sound.h"
+#include "dbus.h"
 
 typedef unsigned short      WORD;
 typedef unsigned int        DWORD;
@@ -147,6 +149,70 @@ static const unsigned int uBext = 0x74786562;   // bext
 static const unsigned int uIxml = 0x4c4d5869;   // iXml
 static const unsigned int uList = 0x5453494C;   // LIST
 static const unsigned int uCue  = 0x20657563;   // cue_
+
+
+static SoundData        soundOpen  = {0};
+static SoundData        soundCall  = {0};
+static pthread_t        threadOpen = 0UL;
+static pthread_t        threadCall = 0UL;
+
+int sound_start () {
+    int r;
+    // Read config
+    r = config_get_sounds (&soundOpen, &soundCall);
+    if (r < 0) return r;
+
+    // Load files
+    // TBD
+
+    // Dbus init
+    r = dbus_init ();
+    if (r < 0) return r;
+
+    while (!r) {
+        r = dbus_run ();
+    }
+
+    return r;
+}
+
+int sound_play (uint64_t soundId, int single) {
+    //
+    // Create 2 threads
+    pthread_t thread_id1;
+    pthread_t thread_id2;
+    pthread_t *wait = &thread_id2;
+
+    // Run Playback Function in Separate Threads
+    // printf ("argc=%d\n", argc);
+    if (argc > 2) {
+        pthread_create(&thread_id1, NULL, playwave, (void*)argv[2]);
+        wait = &thread_id1;
+        sleep(2);
+    }
+    pthread_create(&thread_id2, NULL, playwave, (void*)argv[1]);
+
+    // Await 2nd threads return
+    pthread_join(*wait, NULL);
+
+    // Close Sound Card
+    snd_pcm_drain(PlaybackHandle);
+    snd_pcm_close(PlaybackHandle);
+    free_wave_data();
+    return(0);
+
+    return 1;
+}
+
+int sound_stop (uint64_t soundId) {
+    //
+    return 1;
+}
+
+int sound_update (uint64_t idOpen, const char *urlOpen, uint64_t idCall, const char *urlCall) {
+    //
+    return 1;
+}
 
 const char * fourcc_txt (FOURCC fcc) {
     static char buf[16];
@@ -605,6 +671,7 @@ void *playwave(void* data)
 
     pthread_exit(NULL);
 }
+
 int main(int argc, char **argv)
 {
     // Create 2 threads
