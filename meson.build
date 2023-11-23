@@ -65,7 +65,7 @@ inc = include_directories([
 # Sources
 src = [
     'src/app.c',
-    'src/dbus.c',
+    'src/bus.c',
     'src/sound.c',
     'src/config.c'
 ]

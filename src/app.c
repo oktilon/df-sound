@@ -9,7 +9,7 @@
 #include <getopt.h>
 
 #include "app.h"
-#include "dbus.h"
+#include "bus.h"
 #include "sound.h"
 
 static int              gLogLevel   = LOG_LEVEL_WARNING;    // Logging level
@@ -37,6 +37,7 @@ const char *logLevelColor[] = {
     "\033[0;36m",  // LOG_LEVEL_DEBUG   #2AA1B3
     "\033[0;33m"   // LOG_LEVEL_TRACE   #A2734C
 };
+
 /**
  * @brief Logging main body
  *

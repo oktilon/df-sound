@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <systemd/sd-bus.h>
+#include <alsa/asoundlib.h>
 
 #define VERSION_MAJOR       @version_major@
 #define VERSION_MINOR       @version_minor@
@@ -20,7 +21,8 @@
 #define BUS_COMMON_FLAGS    0
 #endif
 
-#define MAX_URL_SIZE        1024
+#define MAX_URL_SIZE        255
+#define MAX_FILE_SIZE       63
 
 // Colors
 #define CSI                 "\033["
@@ -145,18 +147,10 @@ void selfLogFunction (const char *file, int line, const char *func, int lvl, con
 #define returnValIfFailDbg(EXPR, VAL, FMT, ...)     returnValIfFailLevel(LOG_LEVEL_DEBUG,   (EXPR), VAL, FMT __VA_OPT__ (,) __VA_ARGS__)
 #define returnValIfFailTrc(EXPR, VAL, FMT, ...)     returnValIfFailLevel(LOG_LEVEL_TRACE,   (EXPR), VAL, FMT __VA_OPT__ (,) __VA_ARGS__)
 
-#define dbusErrorOnFail(r, ret, cap, msg, dbusError) \
+#define dbusReplyFalseErrorOnFail(r, dbusMessage, msg, ...) \
     if (r < 0) { \
-        selfLogErr (msg "(%d) %s", r, strerror (-r)); \
-        sd_bus_error_set_const (dbusError, cap, msg); \
-        return ret; \
-    }
-
-#define dbusReplyErrorOnFail(r, cap, msg, dbusMessage) \
-    if (r < 0) { \
-        selfLogErr (msg "(%d) %s", r, strerror (-r)); \
-        sd_bus_error err = SD_BUS_ERROR_MAKE_CONST(cap, msg); \
-        return sd_bus_reply_method_error(dbusMessage, &err); \
+        selfLogErr (msg __VA_OPT__ (,) __VA_ARGS__); \
+        return sd_bus_reply_method_return(dbusMessage, "b", 0); \
     }
 
 #define dbusOnFailErr(r, msg, ...) \
@@ -188,12 +182,9 @@ void selfLogFunction (const char *file, int line, const char *func, int lvl, con
 #define DBUS_THIS_PATH                  DBUS_BASE_PATH DBUS_THIS
 #define DBUS_THIS_NAME                  DBUS_BASE_NAME DBUS_THIS
 #define DBUS_THIS_INTERFACE             DBUS_THIS_NAME
-// Methods
-#define SOUND_METHOD_PLAY               "play"
-#define SOUND_METHOD_STOP               "stop"
-// Properties
-#define SOUND_PROP_PLAYING              "playing"
-// Signals
+
+#define TRUE        1
+#define FALSE       0
 
 /*************************
  *  SERVICE ENUMERATIONS
@@ -204,10 +195,30 @@ typedef enum AppStateEnum {
     , SND_Playing
 } AppState;
 
+typedef enum SoundTypeEnum {
+      SoundNone
+    , SoundOpen
+    , SoundCall
+} SoundType;
+
 typedef struct SoundDataStruct {
-    unsigned long id;
-    char url[MAX_URL_SIZE];
-    unsigned char *data;
+    SoundType           type;
+    unsigned long       id;
+    char                url[MAX_URL_SIZE + 1];
+    char                filename[MAX_FILE_SIZE + 1];
+    // Points to loaded WAVE file's data
+    unsigned char      *data;
+    snd_pcm_format_t    format;
+    // Size (in frames) of loaded WAVE file's data
+    snd_pcm_uframes_t   size;
+    // Sample rate
+    unsigned short      rate;
+    // Bit resolution
+    unsigned char       bits;
+    // Block align
+    unsigned char       align;
+    // Number of channels in the wave file
+    unsigned char       channels;
 } SoundData;
 
 #endif // App_H
