@@ -17,19 +17,21 @@
 
 // Include the ALSA .H file that defines ALSA functions/data
 
+#include "bus.h"
 #include "sound.h"
 #include "config.h"
 #include "formats.h"
-#include "bus.h"
+#include "download.h"
 
 typedef struct PlayDataStruct {
     SoundData *soundData;
     snd_pcm_t *pcm;
 } PlayData;
 
+static void sound_check_and_update (SoundData *data, SoundShort *newData);
 static void play_audio(PlayData *play);
 static void *play_wave(void* ptr);
-static int load_wave_file (SoundData *data, const char *fn);
+static int load_wave_file (SoundData *data);
 static void set_state (AppState newState);
 static void set_playing (SoundType type);
 static void reset_playing (SoundType type);
@@ -44,22 +46,43 @@ static int              playingCall = FALSE;
 static AppState         state       = SND_Initializing;
 
 int sound_start () {
-    int r;
+    int i, r, cnt;
+    SoundShort *data = NULL;
 
     // Dbus init
     r = dbus_init ();
     if (r < 0) return r;
 
     // Read config
-    r = config_get_sounds (&soundOpen, &soundCall);
-    if (r < 0) return r;
+    cnt = config_get_sounds (&data);
+    if (cnt) {
+        for (i = 0; i < cnt; i++) {
+            selfLogTrc ("readed %d with id:%d", data[i].type, data[i].id);
+            switch (data[i].type) {
+                case SoundOpen:
+                    sound_check_and_update (&soundOpen, data + i);
+                    break;
 
-    // Load files
-    // TBD
+                case SoundCall:
+                    sound_check_and_update (&soundCall, data + i);
+                    break;
 
-    if (state == SND_Initializing) set_state (SND_Idle);
+                default:
+                    selfLogWrn ("Unknown sound type: %d", data[i].type);
+                    break;
+            }
+        }
+    }
+
+    if (state == SND_Initializing)
+        set_state (SND_Idle);
 
     while (!r) {
+        r = download_count ();
+        if (state == SND_Downloading && r == 0) {
+            // parse files
+            set_state (SND_Idle);
+        }
         r = dbus_loop ();
     }
 
@@ -67,18 +90,22 @@ int sound_start () {
 }
 
 int sound_play (SoundType soundType) {
+    int r;
     pthread_t *th = NULL;
     SoundData *data = NULL;
+    int *playing = NULL;
 
     switch (soundType) {
         case SoundOpen:
             th = &threadOpen;
             data = &soundOpen;
+            playing = &playingOpen;
             break;
 
         case SoundCall:
             th = &threadCall;
             data = &soundCall;
+            playing = &playingCall;
             break;
 
         default:
@@ -90,7 +117,13 @@ int sound_play (SoundType soundType) {
         if (*th) {
             // kill thread
         }
-        pthread_create(th, NULL, play_wave, data);
+        r = pthread_create (th, NULL, play_wave, data);
+        if (r) {
+            selfLogErr ("Create thread error(%d): %m", errno);
+            return FALSE;
+        }
+        *playing = TRUE;
+        dbus_emit_playing ();
     } else {
         selfLogWrn ("Sound type %d isn't initialized!");
         return FALSE;
@@ -130,21 +163,17 @@ int sound_stop (SoundType soundType) {
     return TRUE;
 }
 
-int sound_update (SoundData *soundData, int count) {
+int sound_update (SoundShort *soundData, int count) {
     int i;
 
     for (i = 0; i < count; i++) {
         switch (soundData[i].type) {
             case SoundOpen:
-                if (soundData[i].id != soundOpen.id) {
-                    // update Open
-                }
+                sound_check_and_update (&soundOpen, soundData + i);
                 break;
 
             case SoundCall:
-                if (soundData[i].id != soundOpen.id) {
-                    // update Open
-                }
+                sound_check_and_update (&soundCall, soundData + i);
                 break;
 
             default:
@@ -152,7 +181,8 @@ int sound_update (SoundData *soundData, int count) {
                 break;
         }
     }
-    return TRUE;
+
+    return config_set_sounds (soundData, count);
 }
 
 AppState sound_state () {
@@ -164,28 +194,48 @@ void sound_playing (int *call, int *open) {
     *open = playingOpen;
 }
 
-static int update_sound (SoundData *data, SoundData *newData) {
+static void sound_check_and_update (SoundData *data, SoundShort *newData) {
+    int r;
+    selfLogTrc ("Got t:%d, id:%d old was id:%d [url:%s]", newData->type, newData->id, data->id, newData->url);
+    // If update is not required
+    if (data->id == newData->id && strcmp (data->url, newData->url) == 0)
+        return;
+
+    // Clean old data
     if (data->data) {
         free (data->data);
+        data->data = NULL;
     }
+
+    // Copy SoundData
     memset (data, 0, sizeof (SoundData));
     data->type = newData->type;
     data->id = newData->id;
     strcpy (data->url, newData->url);
+
+    if (!strlen (data->url)) // No sound
+        return;
+
+    // Create sound file name
     snprintf (data->filename, MAX_FILE_SIZE, "%ld.wav", data->id);
 
-    // Test if file exists
+    selfLogTrc ("Filename is:[%s]", data->filename);
+
+    // Test if file not exists
     if (access (data->filename, F_OK)) {
-        // Download file
-        return TRUE;
+        selfLogTrc ("Start download [%s] %s", data->filename, data->url);
+        r = download_sound (&soundOpen);
+        if (r)
+            set_state (SND_Downloading);
+
+        return;
     }
 
     // Parse file
-
-    return TRUE;
+    load_wave_file (data);
 }
 
-static int load_wave_file (SoundData *data, const char *fn) {
+static int load_wave_file (SoundData *data) {
     WaveChunkHeader  head;
     WaveHeader       headFile;
     register int     inHandle;
@@ -198,9 +248,11 @@ static int load_wave_file (SoundData *data, const char *fn) {
     data->data = NULL;
     data->channels = 0;
 
-    if ((inHandle = open (fn, O_RDONLY)) == -1) {
+    selfLogTrc ("Load wave [%d]: %s", data->id, data->filename);
 
-        selfLogErr ("Can't open file [%s]: %m", fn);
+    if ((inHandle = open (data->filename, O_RDONLY)) == -1) {
+
+        selfLogErr ("Can't open file [%s]: %m", data->filename);
         return FALSE;
 
     } else {
@@ -293,15 +345,15 @@ static int load_wave_file (SoundData *data, const char *fn) {
                     }
                 }
             } else {
-                selfLogErr ("Is not a WAVE file [%s]: %m", fn);
+                selfLogErr ("Is not a WAVE file [%s]: %m", data->filename);
             }
 
         } else {
-            selfLogErr ("Can't open file [%s]: %m", fn);
+            selfLogErr ("Can't open file [%s]: %m", data->filename);
         }
 
         if (!data->data || !data->channels) {
-            selfLogErr ("It is a bad WAVE file [%s]", fn);
+            selfLogErr ("It is a bad WAVE file [%s]", data->filename);
         }
 
         close (inHandle);

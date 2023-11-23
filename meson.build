@@ -67,7 +67,8 @@ src = [
     'src/app.c',
     'src/bus.c',
     'src/sound.c',
-    'src/config.c'
+    'src/config.c',
+    'src/download.c'
 ]
 
 # Main header file config

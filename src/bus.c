@@ -177,7 +177,7 @@ static int dbus_update_cb (sd_bus_message *m, void *userdata, sd_bus_error *retE
     // Variables
     int r;
     int cnt = 0;
-    SoundData *data = NULL;
+    SoundShort *data = NULL;
     uint8_t type;
     uint64_t id;
     const char *url;
@@ -188,8 +188,8 @@ static int dbus_update_cb (sd_bus_message *m, void *userdata, sd_bus_error *retE
     while (sd_bus_message_at_end (m, 0) == 0) {
         r = sd_bus_message_read (m, SOUND_UPDATE_STRUCT, &type, &id, &url);
         if (r >= 0) {
-            data = (SoundData *) realloc (data, ((1 + cnt) * sizeof(SoundData)));
-            memset (data + cnt, 0, sizeof(SoundData));
+            data = (SoundShort *) realloc (data, ((1 + cnt) * sizeof(SoundShort)));
+            memset (data + cnt, 0, sizeof(SoundShort));
             data[cnt].type = (SoundType) type;
             data[cnt].id = id;
             strncpy (data[cnt].url, url, MAX_URL_SIZE);
