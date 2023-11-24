@@ -1,27 +1,27 @@
-// A simple C example to play a mono or stereo, 16-bit 44KHz
-// WAVE file using ALSA. This goes directly to the first
-// audio card (ie, its first set of audio out jacks). It
-// uses the snd_pcm_writei() mode of outputting waveform data,
-// blocking.
-//
-// Compile as so to create "alsawave":
-// gcc -o alsawave alsawave.c -lasound
-//
-// Run it from a terminal, specifying the name of a WAVE file to play:
-// ./alsawave MyWaveFile.wav
+/**
+ * @file sound.c
+ * @author Denys Stovbun (denis.stovbun@lanars.com)
+ * @brief Processing sound files
+ * @version 0.1
+ * @date 2023-11-24
+ *
+ *
+ *
+ */
+#define _GNU_SOURCE         /* asprintf */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/queue.h>
 
-// Include the ALSA .H file that defines ALSA functions/data
-
 #include "bus.h"
 #include "sound.h"
 #include "config.h"
 #include "formats.h"
 #include "download.h"
+
+#define SOUNDS_FOLDER           ""
 
 typedef struct PlayDataStruct {
     SoundData *soundData;
@@ -31,10 +31,13 @@ typedef struct PlayDataStruct {
 static void sound_check_and_update (SoundData *data, SoundShort *newData);
 static void play_audio(PlayData *play);
 static void *play_wave(void* ptr);
+static void parse_wave_file (int file, SoundData *data);
 static int load_wave_file (SoundData *data);
 static void set_state (AppState newState);
 static void set_playing (SoundType type);
 static void reset_playing (SoundType type);
+static const char * sound_type (SoundType type);
+static const char * app_state (AppState state);
 
 static const char       SoundCardPortName[] = "default";
 static SoundData        soundOpen   = {0};
@@ -57,7 +60,7 @@ int sound_start () {
     cnt = config_get_sounds (&data);
     if (cnt) {
         for (i = 0; i < cnt; i++) {
-            selfLogTrc ("readed %d with id:%d", data[i].type, data[i].id);
+            selfLogTrc ("%s[%d] id=%d", sound_type (data[i].type), data[i].type, data[i].id);
             switch (data[i].type) {
                 case SoundOpen:
                     sound_check_and_update (&soundOpen, data + i);
@@ -68,7 +71,7 @@ int sound_start () {
                     break;
 
                 default:
-                    selfLogWrn ("Unknown sound type: %d", data[i].type);
+                    selfLogWrn ("Wrong sound type: %d", data[i].type);
                     break;
             }
         }
@@ -93,78 +96,77 @@ int sound_play (SoundType soundType) {
     int r;
     pthread_t *th = NULL;
     SoundData *data = NULL;
-    int *playing = NULL;
 
     switch (soundType) {
         case SoundOpen:
             th = &threadOpen;
             data = &soundOpen;
-            playing = &playingOpen;
             break;
 
         case SoundCall:
             th = &threadCall;
             data = &soundCall;
-            playing = &playingCall;
             break;
 
         default:
-            selfLogWrn ("Invalid sound type: %d", soundType);
+            selfLogWrn ("Wrong sound type: %d", soundType);
             return FALSE;
     }
 
-    if (data) {
-        if (*th) {
-            // kill thread
-        }
-        r = pthread_create (th, NULL, play_wave, data);
-        if (r) {
-            selfLogErr ("Create thread error(%d): %m", errno);
-            return FALSE;
-        }
-        *playing = TRUE;
-        dbus_emit_playing ();
-    } else {
-        selfLogWrn ("Sound type %d isn't initialized!");
+    if (!data) {
+        selfLogWrn ("Sound type %d [%s] is not initialized!", soundType, sound_type (soundType));
         return FALSE;
     }
 
-    // Await 2nd threads return
-    // pthread_join(*wait, NULL);
-
-    // Close Sound Card
-    // snd_pcm_drain(PlaybackHandle);
-    // snd_pcm_close(PlaybackHandle);
-    // free_wave_data();
+    if (*th) {
+        pthread_cancel (*th);
+        *th = 0;
+    }
+    r = pthread_create (th, NULL, play_wave, data);
+    if (r) {
+        selfLogErr ("Create thread error(%d): %m", errno);
+        return FALSE;
+    }
 
     return TRUE;
 }
 
 int sound_stop (SoundType soundType) {
     pthread_t *th = NULL;
+    int *playing = NULL;
 
     switch (soundType) {
         case SoundOpen:
             th = &threadOpen;
+            playing = &playingOpen;
             break;
 
         case SoundCall:
             th = &threadCall;
+            playing = &playingCall;
             break;
 
         default:
-            selfLogWrn ("Invalid sound type: %d", soundType);
+            selfLogWrn ("Wrong sound type: %d", soundType);
             return FALSE;
     }
 
     if (th && *th) {
-        // pthread_
+        pthread_cancel (*th);
+        *th = 0;
+
+        *playing = FALSE;
+        dbus_emit_playing ();
     }
+    if (state == SND_Playing && !playingCall && !playingOpen)
+        set_state (SND_Idle);
+
     return TRUE;
 }
 
 int sound_update (SoundShort *soundData, int count) {
     int i;
+    selfLogInf ("Update %d sound(s)", count);
 
     for (i = 0; i < count; i++) {
         switch (soundData[i].type) {
@@ -189,6 +191,10 @@ AppState sound_state () {
     return state;
 }
 
+const char * sound_state_name () {
+    return app_state (state);
+}
+
 void sound_playing (int *call, int *open) {
     *call = playingCall;
     *open = playingOpen;
@@ -196,7 +202,6 @@ void sound_playing (int *call, int *open) {
 
 static void sound_check_and_update (SoundData *data, SoundShort *newData) {
     int r;
-    selfLogTrc ("Got t:%d, id:%d old was id:%d [url:%s]", newData->type, newData->id, data->id, newData->url);
     // If update is not required
     if (data->id == newData->id && strcmp (data->url, newData->url) == 0)
         return;
@@ -217,9 +222,7 @@ static void sound_check_and_update (SoundData *data, SoundShort *newData) {
         return;
 
     // Create sound file name
-    snprintf (data->filename, MAX_FILE_SIZE, "%ld.wav", data->id);
-
-    selfLogTrc ("Filename is:[%s]", data->filename);
+    snprintf (data->filename, MAX_FILE_SIZE, "%s/%s%ld.wav", getenv ("HOME"), SOUNDS_FOLDER, data->id);
 
     // Test if file not exists
     if (access (data->filename, F_OK)) {
@@ -235,10 +238,153 @@ static void sound_check_and_update (SoundData *data, SoundShort *newData) {
     load_wave_file (data);
 }
 
+static void parse_wave_file (int file, WaveHeader *h, SoundData *data) {
+    uint8_t         buf[64] = {0};
+    WaveChunkHeader c;
+    WaveFmtBody    *f = (WaveFmtBody *)buf;
+    int             file, r;
+    int             bigEndian;
+    uint16_t        format;
+    uint32_t        len;
+    uint8_t         vbps;
+
+    if (h->magic == WAV_RIFF)
+        bigEndian = 0;
+    else if (h->magic == WAV_RIFX)
+        bigEndian = 1;
+    else {
+        selfLogErr ("Is not a RIFF/X file [%s]", data->filename);
+        return;
+    }
+
+    returnIfFailErr (h->type == WAV_WAVE, "Is not a WAVE file [%s] type is [%c%c%c%c]", data->filename, DUMP_ID (h->type));
+
+    selfLogDbg ("File [%s] hdr: ID=%c%c%c%c, Type=%c%c%c%c, Len=%d", data->filename, DUMP_ID (h->magic), DUMP_ID (h->type), h->length);
+
+    // Read in next chunk header
+    while (read (file, &c, sizeof (WaveChunkHeader)) == sizeof (WaveChunkHeader)) {
+        char *log = NULL;
+
+
+        // ============================ Is it a fmt chunk? ===============================
+        if (WAV_FMT == c.type) {
+            char chan[8] = {0};
+
+            len = TO_CPU_INT (c.length, bigEndian);
+
+            if (read (file, &buf, len) != len) {
+                selfLogErr ("Read format error(%d): %m", errno);
+                break;
+            }
+
+            format = TO_CPU_SHORT (f->format, bigEndian);
+
+            if (WAV_FMT_EXTENSIBLE == format) {
+                WaveFmtExtensibleBody *fe = (WaveFmtExtensibleBody*) buf;
+
+                returnIfFailErr (len >= sizeof(WaveFmtExtensibleBody)
+                    , "unknown length of extensible 'fmt ' chunk (read %u, should be %u at least)"
+                    , len
+                    , (unsigned int)sizeof(WaveFmtExtensibleBody));
+
+                if (memcmp(fe->guid_tag, WAV_GUID_TAG, 14) != 0) {
+                    selfLogErr ("Wrong format tag in extensible 'fmt ' chunk");
+                    return;
+                }
+                vbps = TO_CPU_SHORT(fe->bit_p_spl, big_endian);
+                format = TO_CPU_SHORT(fe->guid_format, big_endian);
+            }
+
+            // Can't handle compressed WAVE files
+            returnIfFailErr ((format == WAV_FMT_PCM || format == WAV_FMT_IEEE_FLOAT)
+                , "Unsupported WAVE-file format 0x%04x which is not PCM or FLOAT encoded"
+                , format);
+
+            // TODO Add TO_CPU_*** MACROSes
+            data->bits     = formatEx.format.bit_p_spl;
+            data->rate     = formatEx.format.sample_fq;
+            data->align    = formatEx.format.byte_p_spl;
+            data->channels = formatEx.format.channels;
+
+            if (data->channels == 1)
+                sprintf (chan, "Mono");
+            else if (data->channels == 2)
+                sprintf (chan, "Stereo");
+            else
+                sprintf (chan, "%dch.", data->channels);
+
+            switch (data->bits) {
+                case 8:
+                    data->format = SND_PCM_FORMAT_U8;
+                    r = asprintf (&log, "PCM Unsigned 8bit freq:%u %s", data->rate, chan);
+                    break;
+
+                case 16:
+                    data->format = SND_PCM_FORMAT_S16_LE;
+                    r = asprintf (&log, "PCM Signed 16bit Little endian freq:%u %s", data->rate, chan);
+                    break;
+
+                case 24:
+                    if ((data->align % 3) == 0) {
+                        data->format = SND_PCM_FORMAT_S24_3LE;
+                        r = asprintf (&log, "PCM Signed 24bit Little endian in 3bytes freq:%u %s", data->rate, chan);
+                    } else {
+                        data->format = SND_PCM_FORMAT_S24_LE;
+                        r = asprintf (&log, "PCM Signed 24bit Little endian freq:%u %s", data->rate, chan);
+                    }
+                    break;
+
+                case 32:
+                    data->format = SND_PCM_FORMAT_S32_LE;
+                    r = asprintf (&log, "PCM Signed 32bit Little endian freq:%u %s", data->rate, chan);
+                    break;
+
+                default:
+                    data->format = SND_PCM_FORMAT_U8;
+                    r = asprintf (&log, "PCM Unknown (use Unsigned 8bit) freq:%u %s", data->rate, chan);
+                    break;
+            }
+        }
+
+        // ============================ Is it a data chunk? ===============================
+        else if (WAV_DATA == c.type) {
+            ssize_t sz;
+            // Size of wave data is c.length. Allocate a buffer and read in the wave data
+            if (!(data->data = (uint8_t *) malloc (c.length))) {
+                selfLogErr ("Allocate memory error: %m");
+                break;
+            }
+
+            sz = read (file, data->data, c.length);
+            if (sz != c.length) {
+                free (data->data);
+                data->data = NULL;
+                selfLogErr ("Data chunk sz=%ld not equal c.length=%u\n", sz, c.length);
+                break;
+            }
+
+            // Store size (in frames)
+            data->size = (c.length * 8) / ((uint32_t)data->bits * (uint32_t)data->channels);
+
+            r = asprintf (&log, "data has %ld frames", data->size);
+        }
+
+        // ============================ Skip this chunk ===============================
+        else {
+            r = asprintf (&log, "skip it");
+            if (c.length & 1) c.length++;
+            lseek(file, c.length, SEEK_CUR);
+        }
+
+        selfLogTrc ("Chunk hdr: ID=%c%c%c%c, Len=%d : %s", DUMP_ID (c.type), c.length, log);
+        if (log && r) free (log);
+    }
+}
+
 static int load_wave_file (SoundData *data) {
-    WaveChunkHeader  head;
-    WaveHeader       headFile;
-    register int     inHandle;
+    WaveHeader      h;
+    WaveFmtBody    *f;
+    int             file;
 
     if (!data) {
         selfLogErr ("Invalid pointer");
@@ -248,115 +394,19 @@ static int load_wave_file (SoundData *data) {
     data->data = NULL;
     data->channels = 0;
 
-    selfLogTrc ("Load wave [%d]: %s", data->id, data->filename);
-
-    if ((inHandle = open (data->filename, O_RDONLY)) == -1) {
+    if ((file = open (data->filename, O_RDONLY)) == -1) {
 
         selfLogErr ("Can't open file [%s]: %m", data->filename);
         return FALSE;
 
     } else {
 
-        if (read (inHandle, &headFile, sizeof (WaveHeader)) == sizeof (WaveHeader)) {
+        if (read (file, &h, sizeof (WaveHeader)) == sizeof (WaveHeader))
+            parse_wave_file (file, &h, data);
+        else
+            selfLogErr ("Read file [%s] header error(%d): %m", data->filename, errno);
 
-            if (WAV_RIFF == headFile.magic && WAV_WAVE == headFile.type) {
-                selfLogTrc ("File hdr: ID=0x%08X, Type=0x%08X, Len=%d\n", headFile.magic, headFile.type, headFile.length);
-
-                // Read in next chunk header
-                while (read (inHandle, &head, sizeof (WaveChunkHeader)) == sizeof (WaveChunkHeader)) {
-
-                    selfLogTrc ("Chunk hdr: ID=0x%08X, Len=%d : ", head.type, head.length);
-                    // ============================ Is it a fmt chunk? ===============================
-                    if (WAV_FMT == head.type) {
-                        WaveFmtExtensibleBody  formatEx;
-
-                        // Read in the remainder of chunk
-                        if (read (inHandle, &formatEx, head.length) != head.length) {
-                            selfLogTrc ("Read error: %m");
-                            break;
-                        }
-
-                        // Can't handle compressed WAVE files
-                        if (formatEx.format.format != WAV_FMT_PCM) {
-                            selfLogTrc ("Unsupported WAVE format: 0x%04X", formatEx.format.format);
-                            break;
-                        }
-
-                        data->bits  = (uint8_t)formatEx.format.bit_p_spl;
-                        data->rate  = (uint16_t)formatEx.format.sample_fq;
-                        data->align = (uint8_t)formatEx.format.byte_p_spl;
-                        data->channels = formatEx.format.channels;
-
-                        switch (data->bits) {
-                            case 8:
-                                data->format = SND_PCM_FORMAT_U8;
-                                break;
-
-                            case 16:
-                                data->format = SND_PCM_FORMAT_S16_LE;
-                                break;
-
-                            case 24:
-                                if ((data->align % 3) == 0) {
-                                    data->format = SND_PCM_FORMAT_S24_3LE;
-                                } else {
-                                    data->format = SND_PCM_FORMAT_S24;
-                                }
-                                break;
-
-                            case 32:
-                                data->format = SND_PCM_FORMAT_S32_LE;
-                                break;
-
-                            default:
-                                data->format = SND_PCM_FORMAT_U8;
-                                break;
-                        }
-                    }
-
-                    // ============================ Is it a data chunk? ===============================
-                    else if (WAV_DATA == head.type) {
-                        ssize_t sz;
-                        // Size of wave data is head.length. Allocate a buffer and read in the wave data
-                        if (!(data->data = (uint8_t *) malloc (head.length))) {
-                            selfLogTrc ("Allocate memory error: %m");
-                            break;
-                        }
-
-                        sz = read (inHandle, data->data, head.length);
-                        if (sz != head.length) {
-                            free (data->data);
-                            data->data = NULL;
-                            selfLogErr ("Data chunk sz=%ld not equal head.length=%u\n", sz, head.length);
-                            break;
-                        }
-
-                        // Store size (in frames)
-                        data->size = (head.length * 8) / ((uint32_t)data->bits * (uint32_t)data->channels);
-
-                        selfLogTrc ("Data chunk sz=%ld, frames=%ld\n", sz, data->size);
-                    }
-
-                    // ============================ Skip this chunk ===============================
-                    else {
-                        selfLogTrc ("Skip chunk sz=%d\n", head.length);
-                        if (head.length & 1) head.length++;
-                        lseek(inHandle, head.length, SEEK_CUR);
-                    }
-                }
-            } else {
-                selfLogErr ("Is not a WAVE file [%s]: %m", data->filename);
-            }
-
-        } else {
-            selfLogErr ("Can't open file [%s]: %m", data->filename);
-        }
-
-        if (!data->data || !data->channels) {
-            selfLogErr ("It is a bad WAVE file [%s]", data->filename);
-        }
-
-        close (inHandle);
+        close (file);
     }
 
     return data->data && data->channels ? TRUE : FALSE;
@@ -370,13 +420,13 @@ static void play_audio (PlayData *play) {
     count = 0;
     do {
         frames = snd_pcm_writei (play->pcm, play->soundData->data + count, play->soundData->size - count);
-        printf ("writen %ld frames of %ld left\n", frames, play->soundData->size - count);
+        selfLogTrc ("writen %ld frames of %ld left", frames, play->soundData->size - count);
 
         // If an error, try to recover from it
         if (frames < 0)
             frames = snd_pcm_recover(play->pcm, frames, 0);
         if (frames < 0) {
-            printf("Error playing wave: %s\n", snd_strerror(frames));
+            selfLogErr ("Error playing wave: %s", snd_strerror(frames));
             break;
         }
 
@@ -394,6 +444,8 @@ static void * play_wave(void* ptr) {
     // No wave data loaded yet
     register int err;
     PlayData play = { (SoundData *) ptr, NULL };
+
+    returnValIfFailWrn ((play.soundData->format && play.soundData->channels), NULL, "No sound data");
 
     // Open audio card we wish to use for playback
     err = snd_pcm_open (&(play.pcm), &SoundCardPortName[0], SND_PCM_STREAM_PLAYBACK, 0);
@@ -458,4 +510,25 @@ static void reset_playing (SoundType type) {
     }
     if (emit) dbus_emit_playing (playingCall, playingOpen);
     if (!playingCall && !playingOpen && state != SND_Idle) set_state (SND_Idle);
+}
+
+static const char * sound_type (SoundType type) {
+    switch (type) {
+        case SoundNone: return "None";
+        case SoundOpen: return "Open";
+        case SoundCall: return "Call";
+        default: break;
+    }
+    return "Unknown";
+}
+
+static const char * app_state (AppState state) {
+    switch (state) {
+        case SND_Initializing:  return "Initializing";
+        case SND_Downloading:   return "Downloading";
+        case SND_Idle:          return "Idle";
+        case SND_Playing:       return "Playing";
+        default: break;
+    }
+    return "Unknown";
 }

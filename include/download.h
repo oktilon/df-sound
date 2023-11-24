@@ -10,6 +10,7 @@ typedef enum DownloadStateEnum {
 
 typedef struct DownloadDataStruct {
     uint64_t id;
+    SoundType type;
     char url[MAX_URL_SIZE + 1];
     char filename[MAX_FILE_SIZE + 1];
     DownloadState state;

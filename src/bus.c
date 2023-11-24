@@ -116,7 +116,7 @@ void dbus_emit_state () {
     int r = sd_bus_emit_properties_changed (bus, DBUS_THIS_PATH, DBUS_THIS_INTERFACE, SOUND_PROP_STATE, NULL);
     returnIfFailErr (DBUS_OK (r), "Failed (%d) to emit prop changed signal for `%s`: %s", r, SOUND_PROP_STATE, strerror (-r));
 
-    selfLogDbg ("Emitted changed state: %d", sound_state ());
+    selfLogDbg ("Emitted changed state: %d [%s]", sound_state (), sound_state_name ());
 }
 
 void dbus_emit_playing () {
@@ -128,7 +128,7 @@ void dbus_emit_playing () {
     int r = sd_bus_emit_properties_changed (bus, DBUS_THIS_PATH, DBUS_THIS_INTERFACE, SOUND_PROP_PLAYING, NULL);
     returnIfFailErr (DBUS_OK (r), "Failed (%d) to emit prop changed signal for `%s`: %s", r, SOUND_PROP_PLAYING, strerror (-r));
 
-    selfLogDbg ("Emitted changed playing: [%d, %d]", pCall, pOpen);
+    selfLogDbg ("Emitted changed playing: [%s, %s]", pCall ? "call" : "--", pOpen ? "open" : "--");
 }
 
 

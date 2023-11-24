@@ -8,5 +8,6 @@ int sound_start ();
 int sound_play (SoundType soundId);
 int sound_stop (SoundType soundId);
 int sound_update (SoundShort *soundData, int count);
-AppState sound_state ();
 void sound_playing (int *call, int *open);
+AppState sound_state ();
+const char * sound_state_name ();

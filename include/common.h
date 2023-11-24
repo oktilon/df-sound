@@ -47,10 +47,10 @@ typedef struct SoundDataStruct {
     uint8_t            *data;   // Points to loaded WAVE file's data
     snd_pcm_format_t    format;
     snd_pcm_uframes_t   size;   // Size (in frames) of loaded WAVE file's data
-    uint16_t            rate;   // Sample rate
-    uint8_t             bits;   // Bit resolution
-    uint8_t             align;  // Block align
-    uint8_t             channels; // Number of channels in the wave file
+    uint32_t            rate;   // Sample rate
+    uint16_t            bits;   // Bit resolution
+    uint16_t            align;  // Block align
+    uint16_t            channels; // Number of channels in the wave file
 } SoundData;
 
 

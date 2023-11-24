@@ -2,6 +2,7 @@
 #include <pthread.h>
 
 #include "app.h"
+#include "sound.h"
 #include "download.h"
 
 static pthread_mutex_t  mutexLoader;
@@ -51,6 +52,7 @@ static DownloadData * download_new (SoundData *data) {
         return NULL;
     }
     load->id = data->id;
+    load->type = data->type;
     strcpy (load->url, data->url);
     strcpy (load->filename, data->filename);
     load->state = DL_Init;
@@ -81,6 +83,8 @@ static size_t download_write_chunk (uint8_t *ptr, size_t size, size_t nmemb, voi
     size_t ret = fwrite (ptr, size, nmemb, fd);
     if(!ret) {
         selfLogErr ("Write chunk error(%d): %m", errno);
+    } else {
+        selfLogTrc ("Wrote chunk sz=%ld cnt=%ld", size, nmemb);
     }
     return ret;
 }
@@ -89,9 +93,10 @@ static void * download_process (void *ptr) {
     CURL *curl;
     CURLcode ret;
     FILE *fd;
+    SoundShort snd = {0};
     DownloadData *data = (DownloadData *) (ptr);
 
-    fd = fopen (data->url, "wb");
+    fd = fopen (data->filename, "wb");
     if (!fd) {
         selfLogErr ("Cannot open file for write(%d): %m", errno);
         download_decrement ();
@@ -108,7 +113,7 @@ static void * download_process (void *ptr) {
 
         ret = curl_easy_perform(curl);
         (void)ret;
-        // selfLogTrc ("CURL ret = %d", ret);
+        selfLogTrc ("CURL ret = %d", ret);
 
         /* always cleanup */
         curl_easy_cleanup(curl);
@@ -116,6 +121,12 @@ static void * download_process (void *ptr) {
         data->state = DL_Finished;
 
         fclose (fd);
+
+        snd.id = data->id;
+        snd.type = data->type;
+        strcpy (snd.url, data->url);
+
+        sound_update (&snd, 1);
     }
     download_decrement ();
 

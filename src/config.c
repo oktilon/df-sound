@@ -5,8 +5,8 @@ int config_get_sounds (SoundShort **sounds) {
 
     // Open
     data[0].type = SoundOpen;
-    data[0].id = 1;
-    strcat (data[0].url, "https://defigo.s3.eu-central-1.amazonaws.com/doorbell_sounds/production/1.wav");
+    data[0].id = 4;
+    strcat (data[0].url, "https://defigo.s3.eu-central-1.amazonaws.com/doorbell_sounds/production/4.wav");
 
     // Call
     data[1].type = SoundCall;
