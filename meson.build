@@ -67,6 +67,7 @@ src = [
     'src/app.c',
     'src/bus.c',
     'src/sound.c',
+    'src/mixer.c',
     'src/config.c',
     'src/download.c'
 ]

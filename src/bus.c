@@ -13,10 +13,13 @@
 #include "app.h"
 #include "bus.h"
 #include "sound.h"
+#include "mixer.h"
 
 // Local function definitions
 static int dbus_get_state_cb (sd_bus *b, const char *p, const char *i, const char *name, sd_bus_message *reply, void *_data, sd_bus_error *retError);
 static int dbus_get_playing_cb (sd_bus *b, const char *p, const char *i, const char *name, sd_bus_message *reply, void *_data, sd_bus_error *retError);
+static int dbus_get_volume_cb (sd_bus *b, const char *p, const char *i, const char *name, sd_bus_message *reply, void *_data, sd_bus_error *retError);
+static int dbus_set_volume_cb (sd_bus *b, const char *p, const char *i, const char *name, sd_bus_message *value, void *_data, sd_bus_error *retError);
 static int dbus_play_cb (sd_bus_message *m, void *userdata, sd_bus_error *retError);
 static int dbus_stop_cb (sd_bus_message *m, void *userdata, sd_bus_error *retError);
 static int dbus_update_cb (sd_bus_message *m, void *userdata, sd_bus_error *retError);
@@ -49,6 +52,7 @@ static const sd_bus_vtable vTable[] = {
     ),
     SD_BUS_PROPERTY (SOUND_PROP_STATE,   "y",  dbus_get_state_cb,   0, BUS_COMMON_FLAGS | SD_BUS_VTABLE_PROPERTY_EMITS_CHANGE),
     SD_BUS_PROPERTY (SOUND_PROP_PLAYING, "ay", dbus_get_playing_cb, 0, BUS_COMMON_FLAGS | SD_BUS_VTABLE_PROPERTY_EMITS_CHANGE),
+    SD_BUS_WRITABLE_PROPERTY (SOUND_PROP_VOLUME, "y", dbus_get_volume_cb, dbus_set_volume_cb, 0, BUS_COMMON_FLAGS),
     SD_BUS_VTABLE_END
 };
 
@@ -141,6 +145,28 @@ static int dbus_get_playing_cb (sd_bus *b, const char *p, const char *i, const c
     int pCall = FALSE, pOpen = FALSE;
     sound_playing (&pCall, &pOpen);
     return sd_bus_message_append (reply, "ay", 2, (uint8_t)pCall, (uint8_t)pOpen);
+}
+
+static int dbus_get_volume_cb (sd_bus *b, const char *p, const char *i, const char *name, sd_bus_message *reply, void *_data, sd_bus_error *retError) {
+    uint8_t vol = mixer_get_volume ();
+    return sd_bus_message_append (reply, "y", vol);
+}
+
+static int dbus_set_volume_cb (sd_bus *b, const char *p, const char *i, const char *name, sd_bus_message *value, void *_data, sd_bus_error *retError) {
+    int r;
+    uint8_t vol = 0;
+
+    r = sd_bus_message_read (value, "y", &vol);
+    if (DBUS_OK (r)) {
+        r = mixer_set_volume (vol);
+        selfLogWrn ("Set volume returned [%d]", r);
+        if (r) {
+            //TODO send DBUS error ????
+        }
+    } else {
+        selfLogErr ("Read method argument error(%d): %s", r, strerror (-r));
+    }
+    return 0;
 }
 
 static int dbus_play_cb (sd_bus_message *m, void *userdata, sd_bus_error *retError) {

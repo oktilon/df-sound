@@ -22,6 +22,7 @@
 // Properties
 #define SOUND_PROP_STATE                "state"
 #define SOUND_PROP_PLAYING              "playing"
+#define SOUND_PROP_VOLUME               "volume"
 
 int dbus_init ();
 void dbus_deinit ();

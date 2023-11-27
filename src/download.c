@@ -79,12 +79,13 @@ static int download_start (DownloadData *load) {
 }
 
 static size_t download_write_chunk (uint8_t *ptr, size_t size, size_t nmemb, void *data) {
-    FILE *fd = (FILE *) (data);
-    size_t ret = fwrite (ptr, size, nmemb, fd);
+    ChunkData *cd = (ChunkData *) (data);
+    size_t ret = fwrite (ptr, size, nmemb, cd->fd);
     if(!ret) {
         selfLogErr ("Write chunk error(%d): %m", errno);
     } else {
-        selfLogTrc ("Wrote chunk sz=%ld cnt=%ld", size, nmemb);
+        cd->cnt++;
+        cd->size += ret;
     }
     return ret;
 }
@@ -95,6 +96,7 @@ static void * download_process (void *ptr) {
     FILE *fd;
     SoundShort snd = {0};
     DownloadData *data = (DownloadData *) (ptr);
+    ChunkData cd = { 0, 0, 0 };
 
     fd = fopen (data->filename, "wb");
     if (!fd) {
@@ -103,17 +105,20 @@ static void * download_process (void *ptr) {
         return NULL;
     }
 
+    selfLogInf ("Download to %s", data->filename);
+    cd.fd = fd;
+
     curl = curl_easy_init();
     if(curl) {
 
         curl_easy_setopt(curl, CURLOPT_URL, data->url);
         // curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, fd);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &cd);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, download_write_chunk);
 
         ret = curl_easy_perform(curl);
         (void)ret;
-        selfLogTrc ("CURL ret = %d", ret);
+        selfLogTrc ("CURL ret = %d [chunks=%d, size=%ld]", ret, cd.cnt, cd.size);
 
         /* always cleanup */
         curl_easy_cleanup(curl);

@@ -16,5 +16,11 @@ typedef struct DownloadDataStruct {
     DownloadState state;
 } DownloadData;
 
+typedef struct ChunkDataStruct {
+    uint32_t cnt;
+    size_t size;
+    FILE *fd;
+} ChunkData;
+
 int download_sound (SoundData *data);
 int download_count ();
