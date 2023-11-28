@@ -3,9 +3,10 @@
 
 #include "common.h"
 
-#define VERSION_MAJOR       @version_major@
-#define VERSION_MINOR       @version_minor@
-#define VERSION_REV         @version_rev@
+#define APP_VERSION_MAJOR       @version_major@
+#define APP_VERSION_MINOR       @version_minor@
+#define APP_VERSION_REV         @version_rev@
+#define APP_VERSION             "@version_major@.@version_minor@.@version_rev@"
 
 // Allow unprivileged user
 #ifdef ALLOW_UNPRIVILEGED

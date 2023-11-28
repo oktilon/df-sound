@@ -1,3 +1,13 @@
+/**
+ * @file mixer.c
+ * @author Denys Stovbun (denis.stovbun@lanars.com)
+ * @brief Mixer controls (volume)
+ * @version 0.1
+ * @date 2023-11-27
+ *
+ *
+ *
+ */
 #include <math.h>
 
 #include "app.h"
@@ -9,7 +19,6 @@ static long mixer_get_playback_volume (snd_mixer_elem_t *elem);
 static long convert_to_raw (snd_mixer_elem_t *elem, uint8_t vol);
 static uint8_t convert_to_percent (snd_mixer_elem_t *elem, long val);
 
-static char card[64] = "default";
 
 int mixer_set_volume (uint8_t vol) {
     return mixer_process_volume (&vol, FALSE);
@@ -91,7 +100,7 @@ static void mixer_set_playback_volume (snd_mixer_elem_t *elem, long val) {
         if (snd_mixer_selem_has_playback_channel (elem, chn)) {
             err = snd_mixer_selem_set_playback_volume (elem, chn, val);
             if (err < 0) {
-                selfLogDbg ("Set channel:%d volume error(%d): %s", chn, err, snd_strerror (err));
+                selfLogWrn ("Set channel:%d volume error(%d): %s", chn, err, snd_strerror (err));
                 continue;
             } else
                 selfLogTrc ("Channel:%d volume=%d", chn, val);
@@ -108,7 +117,7 @@ static long mixer_get_playback_volume (snd_mixer_elem_t *elem) {
         if (snd_mixer_selem_has_playback_channel (elem, chn)) {
             err = snd_mixer_selem_get_playback_volume (elem, chn, &val);
             if (err < 0) {
-                selfLogDbg ("Get channel:%d volume error(%d): %s", chn, err, snd_strerror (err));
+                selfLogWrn ("Get channel:%d volume error(%d): %s", chn, err, snd_strerror (err));
                 continue;
             } else {
                 selfLogTrc ("Channel:%d volume=%d", chn, val);

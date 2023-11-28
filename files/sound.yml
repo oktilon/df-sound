@@ -1,0 +1,9 @@
+volume: 50
+sounds:
+  - type: 1
+    id: 4
+    url: https://defigo.s3.eu-central-1.amazonaws.com/doorbell_sounds/production/4.wav
+
+  - type: 2
+    id: 10
+    url: https://defigo.s3.eu-central-1.amazonaws.com/doorbell_sounds/production/10.wav

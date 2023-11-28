@@ -53,17 +53,27 @@ deps = [
     dependency('libsystemd'),
     dependency('threads'),
     dependency('alsa'),
-    dependency('libcurl')
+    dependency('libcurl'),
+    dependency('yaml-0.1')
 ]
 
 
 # Includes
 inc = include_directories([
     'include',
+    'libs/libcyaml/include',
 ])
 
 # Sources
 src = [
+    'libs/libcyaml/src/copy.c',
+    'libs/libcyaml/src/free.c',
+    'libs/libcyaml/src/load.c',
+    'libs/libcyaml/src/mem.c',
+    'libs/libcyaml/src/save.c',
+    'libs/libcyaml/src/utf8.c',
+    'libs/libcyaml/src/util.c',
+
     'src/app.c',
     'src/bus.c',
     'src/sound.c',

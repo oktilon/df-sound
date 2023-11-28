@@ -39,7 +39,6 @@ static void reset_playing (SoundType type);
 static const char * sound_type (SoundType type);
 static const char * app_state (AppState state);
 
-static const char       SoundCardPortName[] = "default";
 static SoundData        soundOpen   = { SoundOpen };
 static SoundData        soundCall   = { SoundCall };
 static pthread_t        threadOpen  = 0UL;
@@ -76,6 +75,7 @@ int sound_start () {
             }
         }
     }
+    config_free (&data);
 
     if (state == SND_Initializing)
         set_state (SND_Idle);
@@ -501,9 +501,9 @@ static void * play_wave(void* ptr) {
     returnValIfFailWrn ((play.soundData->format && play.soundData->channels), NULL, "No sound data");
 
     // Open audio card we wish to use for playback
-    err = snd_pcm_open (&(play.pcm), &SoundCardPortName[0], SND_PCM_STREAM_PLAYBACK, 0);
+    err = snd_pcm_open (&(play.pcm), &card[0], SND_PCM_STREAM_PLAYBACK, 0);
     if (err < 0)
-        selfLogErr ("Can't open audio %s: %s", &SoundCardPortName[0], snd_strerror (err));
+        selfLogErr ("Can't open audio %s: %s", &card[0], snd_strerror (err));
     else {
 
         // Set the audio card's hardware parameters (sample rate, bit resolution, etc)

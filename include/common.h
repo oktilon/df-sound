@@ -17,6 +17,10 @@
 #define TRUE        1
 #define FALSE       0
 
+extern char  card[64];
+extern int   gLogLevel;
+extern int   gYamlLog;
+
 /*************************
  *  SERVICE ENUMERATIONS
  *************************/
@@ -121,19 +125,24 @@ typedef struct SoundDataStruct {
 #define LOG_TYPE_EXTENDED   1
 
 // Global functions
+const char * selfLogTimestamp ();
+void selfLogOutput (const char *file, int line, const char *func, int lvl, const char *tms, const char *msg);
 void selfLogFunction (const char *file, int line, const char *func, int lvl, const char* fmt, ...);
+// Help macros
+#define LOG_FILENAME()      ((const char *)(__FILE__))
+#define LOG_FUNCTION()      ((const char *)(__PRETTY_FUNCTION__))
 // Log always
-#define selfLog(FMT, ...)    selfLogFunction ((const char *)(__FILE__), __LINE__, (const char *)(__PRETTY_FUNCTION__), LOG_LEVEL_ALWAYS,  FMT __VA_OPT__ (,) __VA_ARGS__)
+#define selfLog(FMT, ...)    selfLogFunction (LOG_FILENAME(), __LINE__, LOG_FUNCTION(), LOG_LEVEL_ALWAYS,  FMT __VA_OPT__ (,) __VA_ARGS__)
 // Log ERROR level
-#define selfLogErr(FMT, ...) selfLogFunction ((const char *)(__FILE__), __LINE__, (const char *)(__PRETTY_FUNCTION__), LOG_LEVEL_ERROR,   FMT __VA_OPT__ (,) __VA_ARGS__)
+#define selfLogErr(FMT, ...) selfLogFunction (LOG_FILENAME(), __LINE__, LOG_FUNCTION(), LOG_LEVEL_ERROR,   FMT __VA_OPT__ (,) __VA_ARGS__)
 // Log WARNING level
-#define selfLogWrn(FMT, ...) selfLogFunction ((const char *)(__FILE__), __LINE__, (const char *)(__PRETTY_FUNCTION__), LOG_LEVEL_WARNING, FMT __VA_OPT__ (,) __VA_ARGS__)
+#define selfLogWrn(FMT, ...) selfLogFunction (LOG_FILENAME(), __LINE__, LOG_FUNCTION(), LOG_LEVEL_WARNING, FMT __VA_OPT__ (,) __VA_ARGS__)
 // Log INFO level
-#define selfLogInf(FMT, ...) selfLogFunction ((const char *)(__FILE__), __LINE__, (const char *)(__PRETTY_FUNCTION__), LOG_LEVEL_INFO,    FMT __VA_OPT__ (,) __VA_ARGS__)
+#define selfLogInf(FMT, ...) selfLogFunction (LOG_FILENAME(), __LINE__, LOG_FUNCTION(), LOG_LEVEL_INFO,    FMT __VA_OPT__ (,) __VA_ARGS__)
 // Log DEBUG level
-#define selfLogDbg(FMT, ...) selfLogFunction ((const char *)(__FILE__), __LINE__, (const char *)(__PRETTY_FUNCTION__), LOG_LEVEL_DEBUG,   FMT __VA_OPT__ (,) __VA_ARGS__)
+#define selfLogDbg(FMT, ...) selfLogFunction (LOG_FILENAME(), __LINE__, LOG_FUNCTION(), LOG_LEVEL_DEBUG,   FMT __VA_OPT__ (,) __VA_ARGS__)
 // Log TRACE level
-#define selfLogTrc(FMT, ...) selfLogFunction ((const char *)(__FILE__), __LINE__, (const char *)(__PRETTY_FUNCTION__), LOG_LEVEL_TRACE,   FMT __VA_OPT__ (,) __VA_ARGS__)
+#define selfLogTrc(FMT, ...) selfLogFunction (LOG_FILENAME(), __LINE__, LOG_FUNCTION(), LOG_LEVEL_TRACE,   FMT __VA_OPT__ (,) __VA_ARGS__)
 
 #define returnIfFailLevel(LVL, EXPR, FMT, ...) \
     do { \
@@ -141,9 +150,9 @@ void selfLogFunction (const char *file, int line, const char *func, int lvl, con
             { } \
         else \
         { \
-            selfLogFunction ((const char *)(__FILE__) \
+            selfLogFunction (LOG_FILENAME() \
                 , __LINE__ \
-                , (const char *)(__PRETTY_FUNCTION__) \
+                , LOG_FUNCTION() \
                 , LVL \
                 , FMT __VA_OPT__ (,) __VA_ARGS__); \
             return; \
@@ -156,9 +165,9 @@ void selfLogFunction (const char *file, int line, const char *func, int lvl, con
             { } \
         else \
         { \
-            selfLogFunction ((const char *)(__FILE__) \
+            selfLogFunction (LOG_FILENAME() \
                 , __LINE__ \
-                , (const char *)(__PRETTY_FUNCTION__) \
+                , LOG_FUNCTION() \
                 , LVL \
                 , FMT __VA_OPT__ (,) __VA_ARGS__); \
             return (VAL); \

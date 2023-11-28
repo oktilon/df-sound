@@ -12,13 +12,18 @@
 #include "bus.h"
 #include "sound.h"
 
-static int              gLogLevel   = LOG_LEVEL_WARNING;    // Logging level
-static int              gLogType    = LOG_TYPE_NORMAL;
+/** @brief Sound card name */
+char        card[64]  = "default";
+int         gLogLevel = LOG_LEVEL_WARNING;    // Logging level
+int         gYamlLog  = FALSE;
+
+static int  gLogType  = LOG_TYPE_NORMAL;
 
 // Long command line options
 const struct option longOptions[] = {
     {"verbose",         no_argument,        0,  'v'},
     {"quiet",           no_argument,        0,  'q'},
+    {"yaml",            no_argument,        0,  'y'},
     {"extended-log",    no_argument,        0,  'x'}
 };
 
@@ -38,6 +43,48 @@ const char *logLevelColor[] = {
     "\033[0;33m"   // LOG_LEVEL_TRACE   #A2734C
 };
 
+const char * selfLogTimestamp () {
+    // Static buffer
+    static char buf[60] = {0};
+    // Variables
+    int r;
+    size_t sz;
+    char msec[30] = {0};
+    struct timeval tv;
+    struct tm t = {0};
+
+    // Create timestamp with ms
+    gettimeofday (&tv, NULL);
+    localtime_r (&tv.tv_sec, &t);
+    r = snprintf (msec, 30, "%ld", tv.tv_usec / 1000);
+    for (; r < 3; r++) strcat (msec, "0");
+
+    sz = strftime (buf, sizeof (buf), "%F %T", &t); // %F => %Y-%m-%d,  %T => %H:%M:%S
+    snprintf (buf + sz, 60, ".%s", msec);
+
+    return buf;
+}
+
+void selfLogOutput (const char *file, int line, const char *func, int lvl, const char *tms, const char *msg) {
+    // Output log to stdout
+    if (lvl <= gLogLevel) {
+        if (lvl < 0) {
+            printf ("%s: [---] %s %s\n", tms, func, msg);
+        } else {
+            switch (gLogType) {
+                case LOG_TYPE_EXTENDED:
+                    printf ("%s: [%s] %s %s%s\033[0m [%s:%d]\n", tms, logLevelHeaders[lvl], func, logLevelColor[lvl], msg, file, line);
+                    break;
+
+                default: // LOG_TYPE_NORMAL
+                    printf ("%s: [%s] %s %s%s\033[0m\n", tms, logLevelHeaders[lvl], func, logLevelColor[lvl], msg);
+                    break;
+            }
+        }
+        fflush (stdout);
+    }
+}
+
 /**
  * @brief Logging main body
  *
@@ -51,22 +98,8 @@ const char *logLevelColor[] = {
 void selfLogFunction (const char *file, int line, const char *func, int lvl, const char* fmt, ...) {
     // Variables
     int r;
-    size_t sz;
-    // sqlite3_stmt *db_st = NULL;
-    char buf[60] = {0};
-    char msec[30] = {0};
-    struct timeval tv;
-    struct tm t = {0};
-
-    // Create timestamp with ms
-    gettimeofday (&tv, NULL);
-    localtime_r (&tv.tv_sec, &t);
-    r = snprintf (msec, 30, "%ld", tv.tv_usec / 1000);
-    for (; r < 3; r++) strcat (msec, "0");
-
-    sz = strftime (buf, sizeof (buf), "%F %T", &t); // %F => %Y-%m-%d,  %T => %H:%M:%S
-    snprintf (buf + sz, 60, ".%s", msec);
     char *msg = NULL;
+    const char *tms = selfLogTimestamp ();
 
     // Format log message
     va_list arglist;
@@ -74,26 +107,11 @@ void selfLogFunction (const char *file, int line, const char *func, int lvl, con
     r = vasprintf (&msg, fmt, arglist);
     va_end (arglist);
 
-    // Output log to stdout
-    if (lvl <= gLogLevel) {
-        if (lvl < 0) {
-            printf ("%s: [---] %s %s\n", buf, func, msg);
-        } else {
-            switch (gLogType) {
-                case LOG_TYPE_EXTENDED:
-                    printf ("%s: [%s] %s %s%s\033[0m [%s:%d]\n", buf, logLevelHeaders[lvl], func, logLevelColor[lvl], msg, file, line);
-                    break;
-
-                default: // LOG_TYPE_NORMAL
-                    printf ("%s: [%s] %s %s%s\033[0m\n", buf, logLevelHeaders[lvl], func, logLevelColor[lvl], msg);
-                    break;
-            }
-        }
-        fflush (stdout);
-    }
+    selfLogOutput (file, line, func, lvl, tms, msg);
 
     // Free formatted log buffer
-    free (msg);
+    if (r && msg)
+        free (msg);
 }
 
 /**
@@ -122,6 +140,10 @@ void app_parse_arguments (int argc, char **argv) {
                 gLogType = LOG_TYPE_EXTENDED;
                 break;
 
+            case 'y': // yaml logs
+                gYamlLog = TRUE;
+                break;
+
             default:
                 break;
         }
@@ -131,7 +153,7 @@ void app_parse_arguments (int argc, char **argv) {
 int main (int argc, char **argv) {
     app_parse_arguments (argc, argv);
 
-    selfLog ("Started v.%d.%d.%d LogLevel=%s", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, logLevelHeaders[gLogLevel]);
+    selfLog ("Started v.%s LogLevel=%s", APP_VERSION, logLevelHeaders[gLogLevel]);
 
     int err = sound_start ();
 
