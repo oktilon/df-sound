@@ -14,12 +14,12 @@
 #define MAX_URL_SIZE        255
 #define MAX_FILE_SIZE       63
 
-#define TRUE        1
-#define FALSE       0
+#define TRUE    1
+#define FALSE   0
 
-extern char  card[64];
-extern int   gLogLevel;
-extern int   gYamlLog;
+extern char     card[64];
+extern int      gLogLevel;
+extern uint8_t  gVolume;
 
 /*************************
  *  SERVICE ENUMERATIONS
@@ -33,8 +33,10 @@ typedef enum AppStateEnum {
 
 typedef enum SoundTypeEnum {
       SoundNone
+    , SoundTest
     , SoundOpen
     , SoundCall
+    , SoundMAX
 } SoundType;
 
 typedef struct SoundShortStruct {
@@ -186,10 +188,10 @@ void selfLogFunction (const char *file, int line, const char *func, int lvl, con
 #define returnValIfFailDbg(EXPR, VAL, FMT, ...)     returnValIfFailLevel(LOG_LEVEL_DEBUG,   (EXPR), VAL, FMT __VA_OPT__ (,) __VA_ARGS__)
 #define returnValIfFailTrc(EXPR, VAL, FMT, ...)     returnValIfFailLevel(LOG_LEVEL_TRACE,   (EXPR), VAL, FMT __VA_OPT__ (,) __VA_ARGS__)
 
-#define dbusReplyFalseErrorOnFail(r, dbusMessage, msg, ...) \
+#define dbusReplyErrorOnFail(r, dbusMessage, msg, ...) \
     if (r < 0) { \
         selfLogErr (msg __VA_OPT__ (,) __VA_ARGS__); \
-        return sd_bus_reply_method_return(dbusMessage, "b", 0); \
+        return sd_bus_reply_method_errorf (dbusMessage, SD_BUS_ERROR_FAILED, msg __VA_OPT__ (,) __VA_ARGS__); \
     }
 
 #define dbusOnFailErr(r, msg, ...) \

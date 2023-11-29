@@ -20,16 +20,12 @@ static long convert_to_raw (snd_mixer_elem_t *elem, uint8_t vol);
 static uint8_t convert_to_percent (snd_mixer_elem_t *elem, long val);
 
 
-int mixer_set_volume (uint8_t vol) {
-    return mixer_process_volume (&vol, FALSE);
+int mixer_set_volume () {
+    return mixer_process_volume (&gVolume, FALSE);
 }
 
-uint8_t mixer_get_volume () {
-    uint8_t vol = 0;
-
-    mixer_process_volume (&vol, TRUE);
-
-    return vol;
+int mixer_get_volume () {
+    return mixer_process_volume (&gVolume, TRUE);
 }
 
 static int mixer_process_volume (uint8_t *vol, int readValue) {

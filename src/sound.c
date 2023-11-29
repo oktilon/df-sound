@@ -17,9 +17,11 @@
 
 #include "bus.h"
 #include "sound.h"
+#include "mixer.h"
 #include "config.h"
 #include "formats.h"
 #include "download.h"
+#include "sound_test.h"
 
 #define SOUNDS_FOLDER           ""
 
@@ -31,18 +33,22 @@ typedef struct PlayDataStruct {
 static void sound_check_and_update (SoundData *data, SoundShort *newData);
 static void play_audio(PlayData *play);
 static void *play_wave(void* ptr);
-static void parse_wave_file (int file, WaveHeader *h, SoundData *data);
+static void parse_wave_file (FILE *file, WaveHeader *h, SoundData *data);
 static int load_wave_file (SoundData *data);
+static int load_resource (SoundData *data);
 static void set_state (AppState newState);
 static void set_playing (SoundType type);
 static void reset_playing (SoundType type);
 static const char * sound_type (SoundType type);
 static const char * app_state (AppState state);
 
+static SoundData        soundTest   = { SoundTest };
 static SoundData        soundOpen   = { SoundOpen };
 static SoundData        soundCall   = { SoundCall };
+static pthread_t        threadTest  = 0UL;
 static pthread_t        threadOpen  = 0UL;
 static pthread_t        threadCall  = 0UL;
+static int              playingTest = FALSE;
 static int              playingOpen = FALSE;
 static int              playingCall = FALSE;
 static AppState         state       = SND_Initializing;
@@ -55,8 +61,11 @@ int sound_start () {
     r = dbus_init ();
     if (r < 0) return r;
 
+    // Read build-in sounds
+    sound_check_and_update (&soundTest, NULL);
+
     // Read config
-    cnt = config_get_sounds (&data);
+    cnt = config_read_data (&data);
     if (cnt) {
         for (i = 0; i < cnt; i++) {
             selfLogTrc ("%s[%d] id=%d", sound_type (data[i].type), data[i].type, data[i].id);
@@ -75,7 +84,11 @@ int sound_start () {
             }
         }
     }
-    config_free (&data);
+
+    if (data)
+        free (data);
+
+    mixer_set_volume ();
 
     if (state == SND_Initializing)
         set_state (SND_Idle);
@@ -98,6 +111,11 @@ int sound_play (SoundType soundType) {
     SoundData *data = NULL;
 
     switch (soundType) {
+        case SoundTest:
+            th = &threadTest;
+            data = &soundTest;
+            break;
+
         case SoundOpen:
             th = &threadOpen;
             data = &soundOpen;
@@ -136,6 +154,11 @@ int sound_stop (SoundType soundType) {
     int *playing = NULL;
 
     switch (soundType) {
+        case SoundTest:
+            th = &threadTest;
+            playing = &playingTest;
+            break;
+
         case SoundOpen:
             th = &threadOpen;
             playing = &playingOpen;
@@ -158,7 +181,7 @@ int sound_stop (SoundType soundType) {
         *playing = FALSE;
         dbus_emit_playing ();
     }
-    if (state == SND_Playing && !playingCall && !playingOpen)
+    if (state == SND_Playing && !playingCall && !playingOpen && !playingTest)
         set_state (SND_Idle);
 
     return TRUE;
@@ -171,6 +194,10 @@ int sound_update (SoundShort *soundData, int count) {
     for (i = 0; i < count; i++) {
         selfLogInf ("Update #%d %s sound id=%d", i + 1, sound_type (soundData[i].type), soundData[i].id);
         switch (soundData[i].type) {
+            case SoundTest:
+                selfLogWrn ("Can't update Test sound");
+                break;
+
             case SoundOpen:
                 sound_check_and_update (&soundOpen, soundData + i);
                 break;
@@ -185,7 +212,7 @@ int sound_update (SoundShort *soundData, int count) {
         }
     }
 
-    return config_set_sounds (soundData, count);
+    return config_write_data (soundData, count);
 }
 
 AppState sound_state () {
@@ -203,9 +230,9 @@ void sound_playing (int *call, int *open) {
 
 static void sound_check_and_update (SoundData *data, SoundShort *newData) {
     int r;
-    selfLogInf ("Update %s sound [old=%d, new=%d] url's %s equal", sound_type (data->type), data->id, newData->id, strcmp (data->url, newData->url) == 0 ? "are" : "aren't");
+    selfLogInf ("Update %s sound [old=%d, new=%d] url's %s equal", sound_type (data->type), data->id, newData ? newData->id : 0, strcmp (data->url, newData ? newData->url : "") == 0 ? "are" : "aren't");
     // If update is not required
-    if (data->id == newData->id && strcmp (data->url, newData->url) == 0 && data->data)
+    if (newData && data->id == newData->id && strcmp (data->url, newData->url) == 0 && data->data)
         return;
 
     // Clean old data
@@ -214,33 +241,37 @@ static void sound_check_and_update (SoundData *data, SoundShort *newData) {
         data->data = NULL;
     }
 
-    // Copy SoundData
-    memset (data, 0, sizeof (SoundData));
-    data->type = newData->type;
-    data->id = newData->id;
-    strcpy (data->url, newData->url);
+    if (newData) {
+        // Copy SoundData
+        memset (data, 0, sizeof (SoundData));
+        data->type = newData->type;
+        data->id = newData->id;
+        strcpy (data->url, newData->url);
 
-    if (!strlen (data->url)) // No sound
-        return;
+        if (!strlen (data->url)) // No sound
+            return;
 
-    // Create sound file name
-    snprintf (data->filename, MAX_FILE_SIZE, "%s/%s%ld.wav", getenv ("HOME"), SOUNDS_FOLDER, data->id);
+        // Create sound file name
+        snprintf (data->filename, MAX_FILE_SIZE, "%s/%s%ld.wav", getenv ("HOME"), SOUNDS_FOLDER, data->id);
 
-    // Test if file not exists
-    if (access (data->filename, F_OK)) {
-        selfLogTrc ("Start download [%s] %s", data->filename, data->url);
-        r = download_sound (data);
-        if (r)
-            set_state (SND_Downloading);
+        // Test if file not exists
+        if (access (data->filename, F_OK)) {
+            selfLogTrc ("Start download [%s] %s", data->filename, data->url);
+            r = download_sound (data);
+            if (r)
+                set_state (SND_Downloading);
 
-        return;
+            return;
+        }
+
+        // Parse file
+        load_wave_file (data);
+    } else {
+        load_resource (data);
     }
-
-    // Parse file
-    load_wave_file (data);
 }
 
-static void parse_wave_file (int file, WaveHeader *h, SoundData *data) {
+static void parse_wave_file (FILE *file, WaveHeader *h, SoundData *data) {
     uint8_t         buf[64] = {0};
     WaveChunkHeader c;
     WaveFmtBody    *f = (WaveFmtBody *)buf;
@@ -261,10 +292,10 @@ static void parse_wave_file (int file, WaveHeader *h, SoundData *data) {
 
     returnIfFailErr (h->type == WAV_WAVE, "Is not a WAVE file [%s] type is [%c%c%c%c]", data->filename, DUMP_ID (h->type));
 
-    selfLogDbg ("File [%s] hdr: ID=%c%c%c%c, Type=%c%c%c%c, Len=%d", data->filename, DUMP_ID (h->magic), DUMP_ID (h->type), h->length);
+    selfLogInf ("Read '%s' magic:%c%c%c%c, type:%c%c%c%c", data->filename, DUMP_ID (h->magic), DUMP_ID (h->type));
 
     // Read in next chunk header
-    while (read (file, &c, sizeof (WaveChunkHeader)) == sizeof (WaveChunkHeader)) {
+    while (fread (&c, 1, sizeof (WaveChunkHeader), file) == sizeof (WaveChunkHeader)) {
         char *log = NULL;
 
         len = TO_CPU_INT (c.length, bigEndian);
@@ -274,7 +305,7 @@ static void parse_wave_file (int file, WaveHeader *h, SoundData *data) {
             char chan[12] = {0};
 
 
-            if (read (file, &buf, len) != len) {
+            if (fread (&buf, 1, len, file) != len) {
                 selfLogErr ("Read format error(%d): %m", errno);
                 break;
             }
@@ -409,7 +440,7 @@ static void parse_wave_file (int file, WaveHeader *h, SoundData *data) {
                 break;
             }
 
-            sz = read (file, data->data, len);
+            sz = fread (data->data, 1, len, file);
             if (sz != len) {
                 free (data->data);
                 data->data = NULL;
@@ -427,7 +458,8 @@ static void parse_wave_file (int file, WaveHeader *h, SoundData *data) {
         else {
             len += len % 2;
             r = asprintf (&log, "skip it [%d bytes]", len);
-            lseek(file, len, SEEK_CUR);
+            fseek (file, len, SEEK_CUR);
+            // lseek(file, len, SEEK_CUR);
         }
 
         selfLogTrc ("Chunk hdr: ID=%c%c%c%c, Len=%d : %s", DUMP_ID (c.type), len, log);
@@ -437,7 +469,7 @@ static void parse_wave_file (int file, WaveHeader *h, SoundData *data) {
 
 static int load_wave_file (SoundData *data) {
     WaveHeader      h;
-    int             file;
+    FILE           *file;
 
     if (!data) {
         selfLogErr ("Invalid pointer");
@@ -447,19 +479,50 @@ static int load_wave_file (SoundData *data) {
     data->data = NULL;
     data->channels = 0;
 
-    if ((file = open (data->filename, O_RDONLY)) == -1) {
+    if (!(file = fopen (data->filename, "rb"))) {
 
         selfLogErr ("Can't open file [%s]: %m", data->filename);
         return FALSE;
 
     } else {
 
-        if (read (file, &h, sizeof (WaveHeader)) == sizeof (WaveHeader))
+        if (fread (&h, 1, sizeof (WaveHeader), file) == sizeof (WaveHeader))
             parse_wave_file (file, &h, data);
         else
             selfLogErr ("Read file [%s] header error(%d): %m", data->filename, errno);
 
-        close (file);
+        fclose (file);
+    }
+
+    return data->data && data->format && data->channels ? TRUE : FALSE;
+}
+
+static int load_resource (SoundData *data) {
+    WaveHeader      h;
+    FILE           *file;
+
+    if (!data || data->type != SoundTest) {
+        selfLogErr ("Invalid pointer");
+        return FALSE;
+    }
+
+    data->data = NULL;
+    data->channels = 0;
+    strcpy (data->filename, "<resource>");
+
+    if (!(file = fmemopen (sound_test_wav, sound_test_wav_len, "rb"))) {
+
+        selfLogErr ("Can't open file [%s]: %m", data->filename);
+        return FALSE;
+
+    } else {
+
+        if (fread (&h, 1, sizeof (WaveHeader), file) == sizeof (WaveHeader))
+            parse_wave_file (file, &h, data);
+        else
+            selfLogErr ("Read file [%s] header error(%d): %m", data->filename, errno);
+
+        fclose (file);
     }
 
     return data->data && data->format && data->channels ? TRUE : FALSE;
@@ -473,7 +536,7 @@ static void play_audio (PlayData *play) {
     count = 0;
     do {
         frames = snd_pcm_writei (play->pcm, play->soundData->data + count, play->soundData->size - count);
-        selfLogTrc ("writen %ld frames of %ld left", frames, play->soundData->size - count);
+        selfLogTrc ("written %ld frames of %ld left", frames, play->soundData->size - count);
 
         // If an error, try to recover from it
         if (frames < 0)
@@ -568,6 +631,7 @@ static void reset_playing (SoundType type) {
 static const char * sound_type (SoundType type) {
     switch (type) {
         case SoundNone: return "None";
+        case SoundTest: return "Test";
         case SoundOpen: return "Open";
         case SoundCall: return "Call";
         default: break;

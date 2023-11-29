@@ -3,8 +3,7 @@
 
 #include "app.h"
 
-int config_get_sounds (SoundShort **sounds);
-int config_set_sounds (SoundShort *sounds, int count);
-void config_free ();
+int config_read_data (SoundShort **sounds);
+int config_write_data (SoundShort *sounds, int count);
 
 #endif // CONFIG_H

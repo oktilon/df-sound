@@ -15,7 +15,7 @@
 /** @brief Sound card name */
 char        card[64]  = "default";
 int         gLogLevel = LOG_LEVEL_WARNING;    // Logging level
-int         gYamlLog  = FALSE;
+uint8_t     gVolume   = 50;
 
 static int  gLogType  = LOG_TYPE_NORMAL;
 
@@ -23,7 +23,6 @@ static int  gLogType  = LOG_TYPE_NORMAL;
 const struct option longOptions[] = {
     {"verbose",         no_argument,        0,  'v'},
     {"quiet",           no_argument,        0,  'q'},
-    {"yaml",            no_argument,        0,  'y'},
     {"extended-log",    no_argument,        0,  'x'}
 };
 
@@ -138,10 +137,6 @@ void app_parse_arguments (int argc, char **argv) {
 
             case 'x': // extended-log
                 gLogType = LOG_TYPE_EXTENDED;
-                break;
-
-            case 'y': // yaml logs
-                gYamlLog = TRUE;
                 break;
 
             default:

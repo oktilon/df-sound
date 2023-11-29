@@ -14,6 +14,7 @@
 #include "bus.h"
 #include "sound.h"
 #include "mixer.h"
+#include "config.h"
 
 // Local function definitions
 static int dbus_get_state_cb (sd_bus *b, const char *p, const char *i, const char *name, sd_bus_message *reply, void *_data, sd_bus_error *retError);
@@ -148,8 +149,11 @@ static int dbus_get_playing_cb (sd_bus *b, const char *p, const char *i, const c
 }
 
 static int dbus_get_volume_cb (sd_bus *b, const char *p, const char *i, const char *name, sd_bus_message *reply, void *_data, sd_bus_error *retError) {
-    uint8_t vol = mixer_get_volume ();
-    return sd_bus_message_append (reply, "y", vol);
+    int r = mixer_get_volume ();
+    if (r < 0)
+        return r;
+
+    return sd_bus_message_append (reply, "y", gVolume);
 }
 
 static int dbus_set_volume_cb (sd_bus *b, const char *p, const char *i, const char *name, sd_bus_message *value, void *_data, sd_bus_error *retError) {
@@ -158,13 +162,14 @@ static int dbus_set_volume_cb (sd_bus *b, const char *p, const char *i, const ch
 
     r = sd_bus_message_read (value, "y", &vol);
     if (DBUS_OK (r)) {
-        r = mixer_set_volume (vol);
-        selfLogWrn ("Set volume returned [%d]", r);
-        if (r) {
-            //TODO send DBUS error ????
-        }
+        gVolume = vol;
+        config_write_data (NULL, 0);
+        r = mixer_set_volume ();
+        if (r < 0)
+            return r;
     } else {
         selfLogErr ("Read method argument error(%d): %s", r, strerror (-r));
+        return r;
     }
     return 0;
 }
@@ -176,7 +181,10 @@ static int dbus_play_cb (sd_bus_message *m, void *userdata, sd_bus_error *retErr
 
     // Read method parameter
     r = sd_bus_message_read (m, "y", &id);
-    dbusReplyFalseErrorOnFail (r, m, "Read method argument error(%d): %s", r, strerror (-r));
+    dbusReplyErrorOnFail (r, m, "Read method argument error(%d): %s", r, strerror (-r));
+
+    if (id == SoundNone || id >= SoundMAX)
+        return sd_bus_reply_method_errorf (m, SD_BUS_ERROR_FAILED, "Invalid sound type: %d", id);
 
     r = sound_play (id);
 
@@ -191,7 +199,10 @@ static int dbus_stop_cb (sd_bus_message *m, void *userdata, sd_bus_error *retErr
 
     // Read method parameter
     r = sd_bus_message_read (m, "y", &id);
-    dbusReplyFalseErrorOnFail (r, m, "Read method argument error(%d): %s", r, strerror (-r));
+    dbusReplyErrorOnFail (r, m, "Read method argument error(%d): %s", r, strerror (-r));
+
+    if (id == SoundNone || id >= SoundMAX)
+        return sd_bus_reply_method_errorf (m, SD_BUS_ERROR_FAILED, "Invalid sound type: %d", id);
 
     r = sound_stop (id);
 
@@ -209,12 +220,14 @@ static int dbus_update_cb (sd_bus_message *m, void *userdata, sd_bus_error *retE
     const char *url;
 
     r = sd_bus_message_enter_container (m, SD_BUS_TYPE_ARRAY, SOUND_UPDATE_STRUCT);
-    dbusReplyFalseErrorOnFail (r, m, "Enter update array error (%d): %s", r, strerror (-r));
+    dbusReplyErrorOnFail (r, m, "Enter update array error (%d): %s", r, strerror (-r));
 
     while (sd_bus_message_at_end (m, 0) == 0) {
         r = sd_bus_message_read (m, SOUND_UPDATE_STRUCT, &type, &id, &url);
         if (r >= 0) {
             data = (SoundShort *) realloc (data, ((1 + cnt) * sizeof(SoundShort)));
+            if (!data)
+                return -ENOMEM;
             memset (data + cnt, 0, sizeof(SoundShort));
             data[cnt].type = (SoundType) type;
             data[cnt].id = id;
@@ -226,7 +239,7 @@ static int dbus_update_cb (sd_bus_message *m, void *userdata, sd_bus_error *retE
     }
 
     r = sd_bus_message_exit_container (m);
-    dbusReplyFalseErrorOnFail (r, m, "Close update array error (%d): %s", r, strerror (-r));
+    dbusReplyErrorOnFail (r, m, "Close update array error (%d): %s", r, strerror (-r));
 
     r = sound_update (data, cnt);
 
