@@ -46,6 +46,7 @@ conf_data.set('dbus_base_name',     baseName)
 conf_data.set('prj_name',           prj_name)
 conf_data.set('user',               sysUser)
 conf_data.set('executable',         execFile + execParams)
+conf_data.set('log_file_path',      '/var/log/defigo-' + prj_name + '.log')
 
 
 # Dependencies

@@ -2,6 +2,8 @@
 #include <alsa/asoundlib.h>
 // #include <glib/gi18n-lib.h>
 #include <locale.h>
+#include <pthread.h>
+#include <syslog.h>
 #include <stdio.h>
 #include <errno.h>
 #include <sys/resource.h>
@@ -16,6 +18,8 @@
 char        card[64]  = "default";
 int         gLogLevel = LOG_LEVEL_WARNING;    // Logging level
 uint8_t     gVolume   = 50;
+FILE       *gLogHandle  = NULL;
+pthread_mutex_t  gLogMutex;
 
 static int  gLogType  = LOG_TYPE_NORMAL;
 
@@ -42,6 +46,14 @@ const char *logLevelColor[] = {
     "\033[0;33m"   // LOG_LEVEL_TRACE   #A2734C
 };
 
+const int logLevelSystem[] = {
+    LOG_ERR,        // #define LOG_LEVEL_ERROR     0   /* error conditions */
+    LOG_WARNING,    // #define LOG_LEVEL_WARNING   1   /* warning conditions */
+    LOG_NOTICE,     // #define LOG_LEVEL_INFO      2   /* normal but significant condition */
+    LOG_INFO,       // #define LOG_LEVEL_DEBUG     3   /* informational */
+    LOG_DEBUG       // #define LOG_LEVEL_TRACE     4   /* debug-level messages */
+};
+
 const char * selfLogTimestamp () {
     // Static buffer
     static char buf[60] = {0};
@@ -65,23 +77,39 @@ const char * selfLogTimestamp () {
 }
 
 void selfLogOutput (const char *file, int line, const char *func, int lvl, const char *tms, const char *msg) {
+    int logLvl = LOG_EMERG;
+    pthread_mutex_lock (&gLogMutex);
+
+    if (!gLogHandle)
+        gLogHandle = fopen (LOG_FILE_PATH, "a");
+
     // Output log to stdout
     if (lvl <= gLogLevel) {
         if (lvl < 0) {
-            printf ("%s: [---] %s %s\n", tms, func, msg);
+            printf ("<6> %s %s\n", func, msg);
+            if (gLogHandle)
+                fprintf (gLogHandle, "%s: [---] %s %s\n", tms, func, msg);
         } else {
+            logLvl = lvl > LOG_LEVEL_MAX ? LOG_DEBUG : logLevelSystem[lvl];
             switch (gLogType) {
                 case LOG_TYPE_EXTENDED:
-                    printf ("%s: [%s] %s %s%s\033[0m [%s:%d]\n", tms, logLevelHeaders[lvl], func, logLevelColor[lvl], msg, file, line);
+                    printf ("<%d>%s %s [%s:%d]\n", logLvl, func, msg, file, line);
+                    if (gLogHandle)
+                        fprintf (gLogHandle, "%s: [%s] %s %s%s\033[0m [%s:%d]\n", tms, logLevelHeaders[lvl], func, logLevelColor[lvl], msg, file, line);
                     break;
 
                 default: // LOG_TYPE_NORMAL
-                    printf ("%s: [%s] %s %s%s\033[0m\n", tms, logLevelHeaders[lvl], func, logLevelColor[lvl], msg);
+                    printf ("<%d>%s %s\n", logLvl, func, msg);
+                    if (gLogHandle)
+                        fprintf (gLogHandle, "%s: [%s] %s %s%s\033[0m\n", tms, logLevelHeaders[lvl], func, logLevelColor[lvl], msg);
                     break;
             }
         }
         fflush (stdout);
+        if (gLogHandle)
+            fflush (gLogHandle);
     }
+    pthread_mutex_unlock (&gLogMutex);
 }
 
 /**
@@ -150,8 +178,11 @@ int main (int argc, char **argv) {
 
     selfLog ("Started v.%s LogLevel=%s", APP_VERSION, logLevelHeaders[gLogLevel]);
 
-    int err = sound_start ();
+    int err = sound_start_service ();
 
-    selfLogErr ("Stopped");
+    if (gLogHandle)
+        fclose (gLogHandle);
+
+    selfLogErr ("Stopped. Status(%d): %s", err, strerror (abs(err)));
     return err;
 }

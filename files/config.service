@@ -1,17 +1,17 @@
 [Unit]
-Description=Defigo User Interface service
+Description=Defigo sound service
+Requires=sound.target
+After=sound.target
 
 StartLimitIntervalSec=500
 StartLimitBurst=5
 
 [Service]
-Type=simple
-Restart=on-failure
-RestartSec=5s
-ExecStart=@executable@
-
-StandardOutput=append:/var/log/defigo/@prj_name@.log
-StandardError=append:/var/log/defigo/@prj_name@.log
+Type=dbus
+BusName=com.getdefigo.sound
+ExecStart=/usr/bin/sound -vvv
+Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

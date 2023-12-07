@@ -53,7 +53,7 @@ static int              playingOpen = FALSE;
 static int              playingCall = FALSE;
 static AppState         state       = SND_Initializing;
 
-int sound_start () {
+int sound_start_service () {
     int i, r, cnt;
     SoundShort *data = NULL;
 
@@ -64,35 +64,39 @@ int sound_start () {
     // Read build-in sounds
     sound_check_and_update (&soundTest, NULL);
 
-    // Read config
-    cnt = config_read_data (&data);
-    if (cnt) {
-        for (i = 0; i < cnt; i++) {
-            selfLogTrc ("%s[%d] id=%d", sound_type (data[i].type), data[i].type, data[i].id);
-            switch (data[i].type) {
-                case SoundOpen:
-                    sound_check_and_update (&soundOpen, data + i);
-                    break;
+    r = dbus_get_data ();
+    if (!r) {
+        // Read config
+        cnt = config_read_data (&data);
+        if (cnt) {
+            for (i = 0; i < cnt; i++) {
+                selfLogTrc ("%s[%d] id=%d", sound_type (data[i].type), data[i].type, data[i].id);
+                switch (data[i].type) {
+                    case SoundOpen:
+                        sound_check_and_update (&soundOpen, data + i);
+                        break;
 
-                case SoundCall:
-                    sound_check_and_update (&soundCall, data + i);
-                    break;
+                    case SoundCall:
+                        sound_check_and_update (&soundCall, data + i);
+                        break;
 
-                default:
-                    selfLogWrn ("Wrong sound type: %d", data[i].type);
-                    break;
+                    default:
+                        selfLogWrn ("Wrong sound type: %d", data[i].type);
+                        break;
+                }
             }
         }
-    }
 
-    if (data)
-        free (data);
+        if (data)
+            free (data);
+    }
 
     mixer_set_volume ();
 
     if (state == SND_Initializing)
         set_state (SND_Idle);
 
+    r = 0;
     while (!r) {
         r = download_count ();
         if (state == SND_Downloading && r == 0) {

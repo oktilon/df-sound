@@ -4,7 +4,7 @@
 
 #include "app.h"
 
-int sound_start ();
+int sound_start_service ();
 int sound_play (SoundType soundId);
 int sound_stop (SoundType soundId);
 int sound_update (SoundShort *soundData, int count);

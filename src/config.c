@@ -41,15 +41,18 @@ int config_read_data (SoundShort **sounds) {
 
 int config_write_data (SoundShort *sounds, int count) {
     // Variables
-    uint8_t i, j, has;
+    uint8_t i, j, has, freeConfig = TRUE;
     cyaml_err_t err = 0;
+    ConfigData newConfig = {0};
     // Log on error and exit
     const char *file;
 
     // Read config from file
     config_read (&file);
-    if (!cfg)
-        return FALSE;
+    if (!cfg) {
+        cfg = &newConfig;
+        freeConfig = FALSE;
+    }
 
     // Update sounds
     if (count && sounds) {
@@ -102,7 +105,10 @@ int config_write_data (SoundShort *sounds, int count) {
     }
 
     // Free config struct
-    config_free ();
+    if (freeConfig)
+        config_free ();
+    else if (cfg)
+        cfg = NULL;
 
     return err ? FALSE : TRUE;
 }
@@ -164,7 +170,7 @@ static void config_read (const char **filename) {
     err = cyaml_load_file (file, &ymlConfig
         , &schemaCache, (cyaml_data_t **)&cfg, NULL);
     if (err != CYAML_OK) {
-        selfLogWrn ("CYaml load file error(%d): %s", err, cyaml_strerror (err));
+        selfLogWrn ("CYaml load file error(%d): %s [%s]", err, cyaml_strerror (err), file);
     }
 }
 

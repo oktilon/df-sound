@@ -8,6 +8,9 @@
 #define APP_VERSION_REV         @version_rev@
 #define APP_VERSION             "@version_major@.@version_minor@.@version_rev@"
 
+
+#define LOG_FILE_PATH           "@log_file_path@"
+
 // Allow unprivileged user
 #ifdef ALLOW_UNPRIVILEGED
 #define BUS_COMMON_FLAGS    SD_BUS_VTABLE_UNPRIVILEGED

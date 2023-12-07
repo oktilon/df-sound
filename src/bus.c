@@ -24,6 +24,8 @@ static int dbus_set_volume_cb (sd_bus *b, const char *p, const char *i, const ch
 static int dbus_play_cb (sd_bus_message *m, void *userdata, sd_bus_error *retError);
 static int dbus_stop_cb (sd_bus_message *m, void *userdata, sd_bus_error *retError);
 static int dbus_update_cb (sd_bus_message *m, void *userdata, sd_bus_error *retError);
+static int dbus_read_update(sd_bus_message *m);
+static const char *bus_get_error (const sd_bus_error *e, int error);
 
 // Local variables
 static sd_bus       *bus;
@@ -43,12 +45,6 @@ static const sd_bus_vtable vTable[] = {
         , SOUND_METHOD_STOP_SGN, SD_BUS_PARAM (soundType)
         , SOUND_METHOD_RETURN,   SD_BUS_PARAM (ok)
         , dbus_stop_cb
-        , BUS_COMMON_FLAGS
-    ),
-    SD_BUS_METHOD_WITH_NAMES(SOUND_METHOD_UPDATE
-        , SOUND_UPDATE_SGN,    SD_BUS_PARAM (soundData)
-        , SOUND_METHOD_RETURN, SD_BUS_PARAM (ok)
-        , dbus_update_cb
         , BUS_COMMON_FLAGS
     ),
     SD_BUS_PROPERTY (SOUND_PROP_STATE,   "y",  dbus_get_state_cb,   0, BUS_COMMON_FLAGS | SD_BUS_VTABLE_PROPERTY_EMITS_CHANGE),
@@ -80,16 +76,21 @@ int dbus_init () {
                                 NULL);
     returnValIfFailErr (DBUS_OK (r), r, "Failed to issue interface (%d): %s", r, strerror (-r));
 
+    // Subscribe UI service signals
+    r = sd_bus_match_signal(bus, NULL, NULL,
+                            DBUS_GW_PATH, DBUS_GW_UI_IFACE,
+                            DBUS_GW_SIG_DATA, dbus_update_cb, NULL);
+    returnValIfFailErr (DBUS_OK (r), r, "Subscribe %s signal on gateway Ui iface error(%d): %s", DBUS_GW_SIG_DATA, r, strerror(-r));
+
     // Take a well-known service name so that clients can find us
     r = sd_bus_request_name (bus, DBUS_THIS_NAME, 0);
     returnValIfFailErr (DBUS_OK (r), r, "Failed to acquire service name (%d): %s", r, strerror (-r));
 
     r = sd_bus_get_unique_name (bus, &uniqueName);
-    if (DBUS_OK (r)) {
+    if (DBUS_OK (r))
         selfLogDbg ("Unique name: %s", uniqueName);
-    } else {
+    else
         selfLogDbg ("Unique name error (%d): %s", r, strerror (-r));
-    }
 
     selfLogDbg ("D-bus initialization is finished!(%d)", r);
     return r;
@@ -113,6 +114,36 @@ int dbus_loop () {
     returnValIfFailErr (DBUS_OK (r), -r, "Failed to wait on bus: %s", strerror (-r));
 
     return EXIT_SUCCESS;
+}
+
+int dbus_get_data () {
+    // Variables
+    int r;
+    sd_bus_error err = SD_BUS_ERROR_NULL;
+    sd_bus_message *ans = NULL;
+
+    selfLogInf ("Request sound data");
+
+    // Call sound:play method
+    r = sd_bus_call_method (bus
+        , DBUS_GW_NAME
+        , DBUS_GW_PATH
+        , DBUS_GW_UI_IFACE
+        , DBUS_GW_GET_DATA
+        , &err
+        , &ans
+        , ""
+    );
+    if (r < 0) {
+        selfLogErr ("Request sound data error(%d): %s", r, bus_get_error (&err, r));
+        sd_bus_error_free (&err);
+        return FALSE;
+    }
+
+    r = dbus_read_update (ans);
+    if (ans) sd_bus_message_unref (ans);
+
+    return r < 0 ? FALSE : TRUE;
 }
 
 void dbus_emit_state () {
@@ -183,7 +214,7 @@ static int dbus_play_cb (sd_bus_message *m, void *userdata, sd_bus_error *retErr
     r = sd_bus_message_read (m, "y", &id);
     dbusReplyErrorOnFail (r, m, "Read method argument error(%d): %s", r, strerror (-r));
 
-    if (id == SoundNone || id >= SoundMAX)
+    if (id <= SoundNone || id >= SoundMAX)
         return sd_bus_reply_method_errorf (m, SD_BUS_ERROR_FAILED, "Invalid sound type: %d", id);
 
     r = sound_play (id);
@@ -201,7 +232,7 @@ static int dbus_stop_cb (sd_bus_message *m, void *userdata, sd_bus_error *retErr
     r = sd_bus_message_read (m, "y", &id);
     dbusReplyErrorOnFail (r, m, "Read method argument error(%d): %s", r, strerror (-r));
 
-    if (id == SoundNone || id >= SoundMAX)
+    if (id <= SoundNone || id >= SoundMAX)
         return sd_bus_reply_method_errorf (m, SD_BUS_ERROR_FAILED, "Invalid sound type: %d", id);
 
     r = sound_stop (id);
@@ -211,6 +242,15 @@ static int dbus_stop_cb (sd_bus_message *m, void *userdata, sd_bus_error *retErr
 }
 
 static int dbus_update_cb (sd_bus_message *m, void *userdata, sd_bus_error *retError) {
+    // Read update
+    int r = dbus_read_update (m);
+    // Set response boolean
+    int ret = r < 0 ? FALSE : TRUE;
+    // Reply bool result
+    return sd_bus_reply_method_return(m, "b", ret);
+}
+
+static int dbus_read_update(sd_bus_message *m) {
     // Variables
     int r;
     int cnt = 0;
@@ -219,8 +259,11 @@ static int dbus_update_cb (sd_bus_message *m, void *userdata, sd_bus_error *retE
     uint64_t id;
     const char *url;
 
+    r = sd_bus_message_read (m, SOUND_UPDATE_DATA, &gVolume);
+    dbusOnFailErr (r, "Read update data error (%d): %s", r, strerror (-r));
+
     r = sd_bus_message_enter_container (m, SD_BUS_TYPE_ARRAY, SOUND_UPDATE_STRUCT);
-    dbusReplyErrorOnFail (r, m, "Enter update array error (%d): %s", r, strerror (-r));
+    dbusOnFailErr (r, "Enter update array error (%d): %s", r, strerror (-r));
 
     while (sd_bus_message_at_end (m, 0) == 0) {
         r = sd_bus_message_read (m, SOUND_UPDATE_STRUCT, &type, &id, &url);
@@ -239,10 +282,26 @@ static int dbus_update_cb (sd_bus_message *m, void *userdata, sd_bus_error *retE
     }
 
     r = sd_bus_message_exit_container (m);
-    dbusReplyErrorOnFail (r, m, "Close update array error (%d): %s", r, strerror (-r));
+    dbusOnFailErr (r, "Close update array error (%d): %s", r, strerror (-r));
 
-    r = sound_update (data, cnt);
+    return sound_update (data, cnt) ? 0 : -EINVAL;
+}
 
-    // Reply bool result
-    return sd_bus_reply_method_return(m, "b", r);
+/**
+ * @brief Gets dbus error if it's possible
+ *
+ * @param e Dbus error
+ * @param error errno
+ * @return const char*
+ */
+static const char *bus_get_error (const sd_bus_error *e, int error) {
+    if (e) {
+        if (sd_bus_error_has_name (e, SD_BUS_ERROR_ACCESS_DENIED))
+            return "Access denied";
+
+        if (e->message)
+            return e->message;
+    }
+
+    return strerror (abs (error));
 }
